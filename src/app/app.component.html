@@ -1,0 +1,23 @@
+<div style="max-width:720px;margin:24px auto;font-family:system-ui,Arial">
+  <h1>LaunchDarkly + Angular Demo</h1>
+  <section style="margin:16px 0;padding:12px;border:1px solid #ddd;border-radius:8px">
+    <h3>User Context</h3>
+    <button (click)="identifyUserA()">Identify as demo-user-1 (US)</button>
+    <button (click)="identifyUserB()" style="margin-left:8px">Identify as demo-user-2 (CA)</button>
+  </section>
+  <section style="margin:16px 0;padding:12px;border:1px solid #ddd;border-radius:8px">
+    <h3>Flags</h3>
+    <div *ngIf="showNewNav$ | async; else oldNav">
+      <strong>new-nav:</strong> ON — showing the new navigation bar.
+      <nav style="margin-top:8px">[ New Navigation ]</nav>
+    </div>
+    <ng-template #oldNav>
+      <strong>new-nav:</strong> OFF — showing the legacy navigation.
+      <nav style="margin-top:8px">[ Legacy Navigation ]</nav>
+    </ng-template>
+    <div style="margin-top:12px">
+      <strong>welcome-text:</strong>
+      <span>{{ welcomeText$ | async }}</span>
+    </div>
+  </section>
+</div>

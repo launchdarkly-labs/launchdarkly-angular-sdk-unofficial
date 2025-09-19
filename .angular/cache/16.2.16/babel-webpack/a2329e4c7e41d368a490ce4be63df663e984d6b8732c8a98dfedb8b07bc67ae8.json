@@ -1,0 +1,1 @@
+{"ast":null,"code":"export const environment = {\n  production: false,\n  launchDarklyClientId: 'YOUR_CLIENT_SIDE_ID',\n  bootstrapFlags: {\n    'new-nav': false,\n    'welcome-text': 'Welcome!'\n  }\n};","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
