@@ -1,15 +1,12 @@
 # LaunchDarkly Best Practices
 
 This document outlines the best practices for implementing LaunchDarkly feature flags in Angular applications, based on the patterns used in this project.
-
 ## Table of Contents
 1. [Core Best Practices](#core-best-practices)
 2. [Security Best Practices](#security-best-practices)
 3. [Performance Best Practices](#performance-best-practices)
 4. [Code Organization](#code-organization)
-5. [Testing Best Practices](#testing-best-practices)
-6. [Monitoring and Analytics](#monitoring-and-analytics)
-7. [Common Anti-Patterns](#common-anti-patterns)
+5. [Common Anti-Patterns](#common-anti-patterns)
 
 ## Core Best Practices
 
@@ -242,101 +239,6 @@ const FLAG_CONFIGS: FlagConfig[] = [
 'newNav'            // camelCase
 'flag1'             // Unclear
 'feature'           // Too generic
-```
-
-## Testing Best Practices
-
-### 1. Mock LaunchDarkly for Tests
-```typescript
-// ✅ BEST PRACTICE: Mock LaunchDarkly in tests
-export class MockFeatureFlagsService {
-  private flags = new BehaviorSubject<Record<string, any>>({});
-  
-  getFlag$(key: string, fallback: any): Observable<any> {
-    return this.flags.pipe(
-      map(flags => flags[key] ?? fallback)
-    );
-  }
-  
-  setFlag(key: string, value: any): void {
-    const current = this.flags.value;
-    this.flags.next({ ...current, [key]: value });
-  }
-}
-```
-
-### 2. Test Flag Scenarios
-```typescript
-// ✅ BEST PRACTICE: Test different flag scenarios
-describe('FeatureFlagsService', () => {
-  it('should return fallback when flag is not set', () => {
-    const service = new MockFeatureFlagsService();
-    const result = service.getFlag$('new-nav', false);
-    expect(result).toBe(false);
-  });
-  
-  it('should return flag value when set', () => {
-    const service = new MockFeatureFlagsService();
-    service.setFlag('new-nav', true);
-    const result = service.getFlag$('new-nav', false);
-    expect(result).toBe(true);
-  });
-});
-```
-
-### 3. Integration Tests
-```typescript
-// ✅ BEST PRACTICE: Test with real LaunchDarkly in integration tests
-describe('LaunchDarkly Integration', () => {
-  it('should initialize and fetch flags', async () => {
-    const service = TestBed.inject(FeatureFlagsService);
-    await service.initialize();
-    
-    const flag = service.getFlag$('new-nav', false);
-    expect(flag).toBeDefined();
-  });
-});
-```
-
-## Monitoring and Analytics
-
-### 1. Flag Usage Tracking
-```typescript
-// ✅ BEST PRACTICE: Track flag usage for analytics
-private trackFlagUsage(flagKey: string, value: any, context: LDContext) {
-  this.client?.track('flag-used', {
-    flagKey,
-    flagValue: value,
-    userId: context.key,
-    timestamp: new Date().toISOString()
-  });
-}
-```
-
-### 2. Error Monitoring
-```typescript
-// ✅ BEST PRACTICE: Monitor LaunchDarkly errors
-this.client?.on('failed', (error) => {
-  console.error('LaunchDarkly client failed:', error);
-  // Send to error tracking service
-  this.errorTrackingService.captureException(error);
-});
-```
-
-### 3. Performance Metrics
-```typescript
-// ✅ BEST PRACTICE: Track performance metrics
-private metrics = {
-  flagEvaluationTime: 0,
-  networkLatency: 0,
-  errorRate: 0
-};
-
-private updateMetrics(metric: string, value: number) {
-  this.metrics[metric] = value;
-  // Send to analytics service
-  this.analyticsService.track('ld-metric', { metric, value });
-}
 ```
 
 ## Common Anti-Patterns
