@@ -27,7 +27,7 @@ This guide provides complete instructions for setting up and testing the LaunchD
 ### 1. Clone the Repository
 ```bash
 git clone <your-repository-url>
-cd ld-demo-fixed
+cd ld-demo-angular
 ```
 
 ### 2. Install Angular CLI (if not already installed)
