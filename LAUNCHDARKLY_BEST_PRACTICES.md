@@ -88,7 +88,7 @@ const context: LDContext = {
 ### 1. Client-Side Security
 ```typescript
 // ✅ BEST PRACTICE: Use client-side ID only
-launchDarklyClientId: '68cd99a961ae770ac73ef673'
+launchDarklyClientId: 'YOUR_ACTUAL_CLIENT_SIDE_ID_HERE'
 
 // ❌ NEVER: Use server-side SDK key in client code
 // launchDarklySdkKey: 'sdk-key-here' // This would be a security risk
