@@ -1,1 +1,38 @@
 body { margin: 0; font-family: system-ui, Arial, sans-serif; background: #fafafa; }
+
+/* Demo styles for ldClassIf directive */
+.premium-user {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 2px solid #9c27b0;
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+}
+
+.basic-user {
+  background: #e3f2fd;
+  color: #1976d2;
+  border: 2px solid #2196f3;
+}
+
+.dark-theme {
+  background: #2c3e50;
+  color: #ecf0f1;
+  border: 2px solid #34495e;
+}
+
+.light-theme {
+  background: #ffffff;
+  color: #2c3e50;
+  border: 2px solid #bdc3c7;
+}
+
+.feature-enabled {
+  border-left: 4px solid #4caf50;
+  background: #e8f5e8;
+}
+
+.feature-disabled {
+  border-left: 4px solid #f44336;
+  background: #ffebee;
+  opacity: 0.6;
+}
