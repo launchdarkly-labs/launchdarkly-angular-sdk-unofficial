@@ -201,12 +201,14 @@ export class LaunchDarklyService {
     // Set up global flag change listener
     client.on('change', (settings: LDFlagChangeset) => {
       console.log('[LaunchDarkly Service] Flag changes detected:', Object.keys(settings));
-      Object.entries(settings).forEach(([key, { current, previous }]) => {
-        this.zone.run(() => this.flagChangesSubject$.next({
-          key,
-          current,
-          previous
-        }));
+      this.zone.run(() => {
+        Object.entries(settings).forEach(([key, { current, previous }]) => {
+          this.flagChangesSubject$.next({
+            key,
+            current,
+            previous
+          });
+        });
       });
     });
 
