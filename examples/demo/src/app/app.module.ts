@@ -22,12 +22,12 @@ import { environment } from '../environments/environment';
         options: { streaming: true }
       }
     },
-    /* only needed because angular  DI gets messed up with local file imports */
+    /* only needed because angular  DI gets messed up with local file imports 
     {
       provide: LaunchDarklyService,
       useFactory: (zone: NgZone, cfg: any) => new LaunchDarklyService(zone as any, cfg),
       deps: [NgZone, LD_SERVICE_CONFIG]
-    },
+    },*/
     // wait for at most 500ms for LaunchDarkly to be ready
     {
       provide: APP_INITIALIZER,
