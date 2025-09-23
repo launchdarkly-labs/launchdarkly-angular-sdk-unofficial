@@ -6,3 +6,4 @@ REFACTORING_*.md
 dist/*
 **/node_modules/*
 **/launchdarkly-angular-*.tgz
+documentation/*

@@ -1,0 +1,10 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/test/**/*.ts",
+    "src/**/*.component.spec.ts",
+    "src/**/*.service.spec.ts",
+    "src/**/*.directive.spec.ts"
+  ]
+}

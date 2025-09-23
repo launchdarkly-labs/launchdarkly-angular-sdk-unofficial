@@ -5,32 +5,225 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 /**
  * Directive for conditionally applying inline CSS styles based on LaunchDarkly feature flags.
  * Similar to ngStyle, but reactive to LaunchDarkly flag changes.
- *
- * Examples (existing API):
+ * 
+ * ## Parameters
+ * 
+ * ### ldStyleIf (required)
+ * - **Type**: `string | [any, ...any[]] | LdStyleIfConfig`
+ * - **Description**: The LaunchDarkly flag key, tuple, or configuration object
+ * - **Examples**: 
+ *   - `'theme'` (string)
+ *   - `['theme', { backgroundColor: 'red' }]` (tuple)
+ *   - `['theme', 'dark', { color: 'white' }, { color: 'black' }]` (tuple with else style)
+ *   - `{ flag: 'theme', value: 'dark', style: { color: 'white' } }` (object)
+ * 
+ * ### ldStyleIfFallback (optional)
+ * - **Type**: `any`
+ * - **Description**: Default value to use if the flag is not available or evaluation fails
+ * - **Default**: `undefined`
+ * - **Example**: `false`, `'light'`, `5`
+ * 
+ * ### ldStyleIfValue (optional)
+ * - **Type**: `any`
+ * - **Description**: Specific value to check for. If provided, styles are applied only if flag equals this value.
+ *   If not provided, styles are applied if flag is truthy.
+ * - **Default**: `undefined`
+ * - **Example**: `'dark'`, `10`, `true`
+ * 
+ * ### ldStyleIfStyle (optional)
+ * - **Type**: `{ [key: string]: any }`
+ * - **Description**: The CSS styles to apply when the condition is met (object syntax).
+ *   Similar to ngStyle, accepts an object with CSS properties as keys.
+ * - **Default**: `undefined`
+ * - **Example**: `{ backgroundColor: '#007bff', color: 'white', fontSize: '16px' }`
+ * 
+ * ### ldStyleIfElseStyle (optional)
+ * - **Type**: `{ [key: string]: any }`
+ * - **Description**: The CSS styles to apply when the condition is not met (object syntax).
+ *   Similar to ngStyle, accepts an object with CSS properties as keys.
+ * - **Default**: `undefined`
+ * - **Example**: `{ backgroundColor: '#e9ecef', color: '#495057' }`
+ * 
+ * ## Configuration Object Properties
+ * 
+ * When using the object syntax for `ldStyleIf`, you can provide a `LdStyleIfConfig` object with the following properties:
+ * 
+ * ### flag (required)
+ * - **Type**: `string`
+ * - **Description**: The LaunchDarkly flag key to evaluate
+ * - **Example**: `'theme'`, `'user-tier'`, `'premium-features'`
+ * 
+ * ### style (optional)
+ * - **Type**: `{ [key: string]: any }`
+ * - **Description**: CSS styles to apply when the condition is met
+ * - **Example**: `{ backgroundColor: '#333', color: '#fff', fontSize: '16px' }`
+ * 
+ * ### elseStyle (optional)
+ * - **Type**: `{ [key: string]: any }`
+ * - **Description**: CSS styles to apply when the condition is not met
+ * - **Example**: `{ backgroundColor: '#fff', color: '#333', fontSize: '14px' }`
+ * 
+ * ### value (optional)
+ * - **Type**: `any`
+ * - **Description**: Specific value to check for. If provided, styles are applied only if flag equals this value
+ * - **Example**: `'dark'`, `10`, `true`
+ * 
+ * ### fallback (optional)
+ * - **Type**: `any`
+ * - **Description**: Fallback value to use if the flag is not available or evaluation fails
+ * - **Example**: `false`, `'light'`, `5`
+ * 
+ * ## Usage Examples
+ * 
+ * ### Basic Boolean Flag
  * ```html
- * <div [ldStyleIf]="'flag'" [ldStyleIfStyle]="{ backgroundColor: 'red' }"></div>
- * <div [ldStyleIf]="'flag'" [ldStyleIfValue]="'dark'" [ldStyleIfStyle]="{ color: 'white' }"></div>
- * <div [ldStyleIf]="'flag'" [ldStyleIfStyle]="{ color: 'white' }" [ldStyleIfElseStyle]="{ color: 'black' }"></div>
+ * <!-- Apply styles when 'premium-features' flag is true -->
+ * <div [ldStyleIf]="'premium-features'" [ldStyleIfStyle]="{ backgroundColor: '#007bff', color: 'white' }">
+ *   Premium content
+ * </div>
  * ```
- *
- * Shorthand API (single binding):
+ * 
+ * ### String Flag with Specific Value
+ * ```html
+ * <!-- Apply styles only when 'theme' equals 'dark' -->
+ * <div [ldStyleIf]="'theme'" [ldStyleIfValue]="'dark'" [ldStyleIfStyle]="{ backgroundColor: '#333', color: '#fff' }">
+ *   Dark themed content
+ * </div>
+ * ```
+ * 
+ * ### With Else Style
+ * ```html
+ * <!-- Apply different styles based on condition -->
+ * <div [ldStyleIf]="'theme'" 
+ *      [ldStyleIfValue]="'dark'" 
+ *      [ldStyleIfStyle]="{ backgroundColor: '#333', color: '#fff' }" 
+ *      [ldStyleIfElseStyle]="{ backgroundColor: '#fff', color: '#333' }">
+ *   Themed content
+ * </div>
+ * ```
+ * 
+ * ### Tuple Syntax (Shorthand)
  * ```html
  * <!-- Tuple: [flag, style] -->
- * <div [ldStyleIf]="['flag', { backgroundColor: 'red' }]"></div>
- *
- * <!-- Tuple: [flag, value, style, elseStyle?] -->
- * <div [ldStyleIf]="['theme', 'dark', { color: 'white' }, { color: 'black' }]"></div>
- *
- * <!-- Object config: { flag, style?, elseStyle?, value?, fallback? } -->
- * <div [ldStyleIf]="{ flag: 'theme', value: 'dark', style: { color: 'white' }, elseStyle: { color: 'black' } }"></div>
+ * <div [ldStyleIf]="['premium-features', { backgroundColor: '#007bff', color: 'white' }]">
+ *   Premium content
+ * </div>
+ * 
+ * <!-- Tuple with else style: [flag, value, style, elseStyle] -->
+ * <div [ldStyleIf]="['theme', 'dark', { backgroundColor: '#333', color: '#fff' }, { backgroundColor: '#fff', color: '#333' }]">
+ *   Themed content
+ * </div>
  * ```
+ * 
+ * ### Object Configuration
+ * ```html
+ * <!-- Simple object config -->
+ * <div [ldStyleIf]="{ flag: 'theme', value: 'dark', style: { backgroundColor: '#333', color: '#fff' } }">
+ *   Themed content
+ * </div>
+ * 
+ * <!-- Object config with else style -->
+ * <div [ldStyleIf]="{ 
+ *   flag: 'theme', 
+ *   value: 'dark', 
+ *   style: { backgroundColor: '#333', color: '#fff' }, 
+ *   elseStyle: { backgroundColor: '#fff', color: '#333' } 
+ * }">
+ *   Themed content
+ * </div>
+ * ```
+ * 
+ * ### Complex Styling
+ * ```html
+ * <!-- Multiple CSS properties -->
+ * <div [ldStyleIf]="'premium-features'" 
+ *      [ldStyleIfStyle]="{ 
+ *        backgroundColor: '#007bff', 
+ *        color: 'white', 
+ *        fontSize: '16px', 
+ *        padding: '20px', 
+ *        borderRadius: '8px',
+ *        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+ *      }">
+ *   Premium content with rich styling
+ * </div>
+ * ```
+ * 
+ * ### With Fallback
+ * ```html
+ * <!-- Provide fallback value for when flag is unavailable -->
+ * <div [ldStyleIf]="'theme'" 
+ *      [ldStyleIfFallback]="'light'" 
+ *      [ldStyleIfValue]="'dark'" 
+ *      [ldStyleIfStyle]="{ backgroundColor: '#333', color: '#fff' }" 
+ *      [ldStyleIfElseStyle]="{ backgroundColor: '#fff', color: '#333' }">
+ *   Themed content
+ * </div>
+ * ```
+ * 
+ * ### Dynamic Style Application
+ * ```html
+ * <!-- Styles are applied/removed reactively as flag values change -->
+ * <div [ldStyleIf]="'theme'" 
+ *      [ldStyleIfStyle]="{ backgroundColor: '#333', color: '#fff' }" 
+ *      [ldStyleIfElseStyle]="{ backgroundColor: '#fff', color: '#333' }">
+ *   This div will automatically switch between dark and light themes
+ * </div>
+ * ```
+ * 
+ * ### Responsive Styling
+ * ```html
+ * <!-- Use CSS custom properties for responsive design -->
+ * <div [ldStyleIf]="'premium-features'" 
+ *      [ldStyleIfStyle]="{ 
+ *        '--primary-color': '#007bff',
+ *        '--text-color': 'white',
+ *        backgroundColor: 'var(--primary-color)',
+ *        color: 'var(--text-color)'
+ *      }">
+ *   Premium content with CSS variables
+ * </div>
+ * ```
+ * 
+ * ## Best Practices
+ * 
+ * 1. **Always provide a fallback**: Use `ldStyleIfFallback` to ensure your app works when LaunchDarkly is unavailable
+ * 2. **Use specific values**: When checking for specific flag values, use `ldStyleIfValue` for precise control
+ * 3. **Provide else styles**: Use `ldStyleIfElseStyle` to show alternative styling when conditions aren't met
+ * 4. **Use object syntax for complex configurations**: The object syntax is more readable for complex scenarios
+ * 5. **Test with different flag values**: Ensure your styles work with various flag types and edge cases
+ * 6. **Use meaningful style properties**: Choose CSS properties that clearly indicate their purpose
+ * 7. **Consider CSS specificity**: Ensure your conditional styles have appropriate CSS specificity
+ * 8. **Use CSS custom properties**: Leverage CSS variables for better maintainability and theming
+ * 9. **Avoid inline styles for complex layouts**: Use this directive for simple conditional styling, not complex layouts
  */
 type LdStyles = { [key: string]: any } | undefined;
+
+/**
+ * Configuration object for the LdStyleIfDirective.
+ * Provides a structured way to configure the directive with all options in a single object.
+ * 
+ * @example
+ * ```typescript
+ * const config: LdStyleIfConfig = {
+ *   flag: 'theme',
+ *   value: 'dark',
+ *   style: { backgroundColor: '#333', color: '#fff' },
+ *   elseStyle: { backgroundColor: '#fff', color: '#333' },
+ *   fallback: 'light'
+ * };
+ * ```
+ */
 interface LdStyleIfConfig {
+  /** The LaunchDarkly flag key to evaluate */
   flag: string;
+  /** CSS styles to apply when the condition is met */
   style?: { [key: string]: any };
+  /** CSS styles to apply when the condition is not met */
   elseStyle?: { [key: string]: any };
+  /** Specific value to check for. If provided, styles are applied only if flag equals this value */
   value?: any;
+  /** Fallback value to use if the flag is not available or evaluation fails */
   fallback?: any;
 }
 @Directive({
@@ -146,6 +339,10 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
+  /**
+   * Updates the subscription to LaunchDarkly flag changes.
+   * Cleans up existing subscription and creates a new one if conditions are met.
+   */
   private updateSubscription() {
     // Clean up existing subscription
     this.subscription?.unsubscribe();
@@ -162,6 +359,12 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Updates the CSS styles based on the current flag value.
+   * Applies or removes styles based on whether the condition is met.
+   * 
+   * @param flagValue - The current value of the LaunchDarkly flag
+   */
   private updateStyles(flagValue: any) {
     const shouldApplyStyles = this.shouldApplyStyles(flagValue);
     
@@ -176,6 +379,12 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /**
+   * Determines whether the styles should be applied based on the flag value.
+   * 
+   * @param flagValue - The current value of the LaunchDarkly flag
+   * @returns true if the styles should be applied, false otherwise
+   */
   private shouldApplyStyles(flagValue: any): boolean {
     // If a specific value is provided, check for exact match
     if (this.currentValue !== undefined) {
@@ -186,6 +395,11 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
     return Boolean(flagValue);
   }
 
+  /**
+   * Applies CSS styles to the element.
+   * 
+   * @param styles - The styles to apply. Can be undefined.
+   */
   private applyStyles(styles?: LdStyles) {
     if (styles) {
       const processedStyles = this.processStyleObject(styles);
@@ -193,6 +407,11 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Removes CSS styles from the element.
+   * 
+   * @param styles - The styles to remove. Can be undefined.
+   */
   private removeStyles(styles?: LdStyles) {
     if (styles) {
       const processedStyles = this.processStyleObject(styles);

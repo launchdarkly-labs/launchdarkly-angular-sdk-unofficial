@@ -12,8 +12,6 @@ import {
 import equal from 'fast-deep-equal';
 
 import { LDServiceConfig, FlagChangeEvent, LD_SERVICE_CONFIG } from '../interfaces/launchdarkly.interface';
-import { LDFlagSet } from 'launchdarkly-js-sdk-common';
-
 /**
  * Utility operator for conditional application
  */
@@ -100,8 +98,12 @@ export class LaunchDarklyService {
     return this.clientSubject$.asObservable();
   }
 
-  // convience method, returns a promise that resolves to the client
-  // will be used to handle lazy initialization
+  /**
+   * Convenience method that returns a promise resolving to the LaunchDarkly client.
+   * Used internally for lazy initialization and client access.
+   * 
+   * @returns Promise that resolves to the LDClient instance
+   */
   private getClient(): Promise<LDClient> {
     return firstValueFrom(this.clientSubject$.pipe(
       filter((client): client is LDClient => client !== undefined),

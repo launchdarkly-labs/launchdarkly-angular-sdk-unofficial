@@ -5,38 +5,146 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 /**
  * Universal structural directive for LaunchDarkly feature flags.
  * Supports any flag type (boolean, string, number, object) with flexible content injection.
+ * The flag value is automatically injected into the template context for use in your template.
  * 
- * @example
+ * ## Parameters
+ * 
+ * ### ldFlag (required)
+ * - **Type**: `string`
+ * - **Description**: The LaunchDarkly feature flag key to evaluate
+ * - **Example**: `'new-feature'`, `'welcome-message'`, `'user-config'`
+ * 
+ * ### ldFlagFallback (optional)
+ * - **Type**: `any`
+ * - **Description**: Default value to use if the flag is not available or evaluation fails
+ * - **Default**: `undefined`
+ * - **Example**: `false`, `'Welcome!'`, `5`, `{}`
+ * 
+ * ### ldFlagValue (optional)
+ * - **Type**: `any`
+ * - **Description**: Specific value to check for. If provided, content is shown only if flag equals this value.
+ *   If not provided, the flag value itself is injected into the template context.
+ * - **Default**: `undefined`
+ * - **Example**: `'premium'`, `10`, `true`
+ * 
+ * ### ldFlagElse (optional)
+ * - **Type**: `TemplateRef<any>`
+ * - **Description**: Template to show when the condition is false (only used when 'ldFlagValue' is specified)
+ * - **Default**: `undefined`
+ * - **Example**: `#premiumUnavailable`
+ * 
+ * ### ldFlagLoading (optional)
+ * - **Type**: `TemplateRef<any>`
+ * - **Description**: Template to show while the flag is loading
+ * - **Default**: `undefined`
+ * - **Example**: `#loadingTemplate`
+ * 
+ * ## Template Context Variables
+ * 
+ * The directive automatically injects the following variables into your template context:
+ * 
+ * - **`$implicit`**: The current flag value (same as `flagValue`)
+ * - **`flagValue`**: The current flag value
+ * - **`fallback`**: The fallback value you provided
+ * - **`isMatch`**: Boolean indicating if the flag value matches the expected value (only when `ldFlagValue` is specified)
+ * 
+ * ## Usage Examples
+ * 
+ * ### Boolean Flag with Conditional Rendering
  * ```html
- * <!-- Boolean flag with conditional rendering -->
  * <ng-template [ldFlag]="'new-feature'" [ldFlagFallback]="false" let-enabled>
- *   <div *ngIf="enabled">New feature content</div>
+ *   <div *ngIf="enabled" class="new-feature-banner">
+ *     <h2>🎉 New Feature Available!</h2>
+ *     <p>Check out our latest feature.</p>
+ *   </div>
  * </ng-template>
+ * ```
  * 
- * <!-- String flag with text injection -->
+ * ### String Flag with Text Injection
+ * ```html
  * <ng-template [ldFlag]="'welcome-message'" [ldFlagFallback]="'Welcome!'" let-message>
- *   <h1>{{ message }}</h1>
+ *   <h1 class="welcome-header">{{ message }}</h1>
  * </ng-template>
+ * ```
  * 
- * <!-- Number flag with value comparison -->
+ * ### Number Flag with Value Display
+ * ```html
  * <ng-template [ldFlag]="'max-items'" [ldFlagFallback]="5" let-maxItems>
- *   <div>Showing {{ maxItems }} items</div>
- * </div>
- * 
- * <!-- Object flag with complex data -->
- * <ng-template [ldFlag]="'user-config'" [ldFlagFallback]="{}" let-config>
- *   <div>Theme: {{ config.theme || 'default' }}</div>
+ *   <div class="items-counter">
+ *     <span>Showing {{ maxItems }} items</span>
+ *     <progress [value]="maxItems" max="20"></progress>
+ *   </div>
  * </ng-template>
+ * ```
  * 
- * <!-- With else template for fallback content -->
+ * ### Object Flag with Complex Data
+ * ```html
+ * <ng-template [ldFlag]="'user-config'" [ldFlagFallback]="{}" let-config>
+ *   <div class="user-config" [class.dark-theme]="config.theme === 'dark'">
+ *     <h3>User Configuration</h3>
+ *     <p>Theme: {{ config.theme || 'default' }}</p>
+ *     <p>Language: {{ config.language || 'en' }}</p>
+ *     <p>Notifications: {{ config.notifications ? 'Enabled' : 'Disabled' }}</p>
+ *   </div>
+ * </ng-template>
+ * ```
+ * 
+ * ### With Else Template for Fallback Content
+ * ```html
  * <ng-template [ldFlag]="'premium-feature'" [ldFlagFallback]="false" [ldFlagElse]="premiumUnavailable" let-enabled>
- *   <div *ngIf="enabled">Premium content</div>
+ *   <div *ngIf="enabled" class="premium-content">
+ *     <h3>Premium Feature</h3>
+ *     <p>This is exclusive premium content.</p>
+ *   </div>
  * </ng-template>
  * 
  * <ng-template #premiumUnavailable>
- *   <div>Premium feature not available</div>
+ *   <div class="upgrade-prompt">
+ *     <h3>Upgrade Required</h3>
+ *     <p>This feature is available for premium users only.</p>
+ *     <button class="upgrade-btn">Upgrade Now</button>
+ *   </div>
  * </ng-template>
  * ```
+ * 
+ * ### Using Context Variables
+ * ```html
+ * <ng-template [ldFlag]="'user-data'" [ldFlagFallback]="null" let-userData let-isEmpty="isEmpty" let-isTruthy="isTruthy">
+ *   <div class="user-info">
+ *     <div *ngIf="!isEmpty && isTruthy">
+ *       <h3>Welcome, {{ userData.name }}!</h3>
+ *       <p>Email: {{ userData.email }}</p>
+ *       <p>Plan: {{ userData.plan }}</p>
+ *     </div>
+ *     <div *ngIf="isEmpty" class="no-data">
+ *       <p>No user data available</p>
+ *     </div>
+ *   </div>
+ * </ng-template>
+ * ```
+ * 
+ * ### Array Flag with Iteration
+ * ```html
+ * <ng-template [ldFlag]="'feature-list'" [ldFlagFallback]="[]" let-features>
+ *   <div class="features-list">
+ *     <h3>Available Features</h3>
+ *     <ul>
+ *       <li *ngFor="let feature of features" class="feature-item">
+ *         {{ feature.name }}: {{ feature.description }}
+ *       </li>
+ *     </ul>
+ *   </div>
+ * </ng-template>
+ * ```
+ * 
+ * ## Best Practices
+ * 
+ * 1. **Always provide a fallback**: Use `ldFlagFallback` to ensure your app works when LaunchDarkly is unavailable
+ * 2. **Use template context variables**: Leverage the injected variables (`flagValue`, `isEmpty`, `isTruthy`) for better template logic
+ * 3. **Handle different data types**: Ensure your templates work with various flag types (boolean, string, number, object, array)
+ * 4. **Provide else templates**: Use `ldFlagElse` to show alternative content when conditions aren't met
+ * 5. **Use loading templates**: Provide `ldFlagLoading` for better user experience during flag loading
+ * 6. **Test with different flag values**: Ensure your templates work with various flag types and edge cases
  */
 @Directive({
   selector: '[ldFlag]'
@@ -106,6 +214,10 @@ export class LdFlagDirective implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
+  /**
+   * Updates the subscription to LaunchDarkly flag changes.
+   * Cleans up existing subscription and creates a new one if a flag key is available.
+   */
   private updateSubscription() {
     // Clean up existing subscription
     this.subscription?.unsubscribe();
@@ -122,6 +234,12 @@ export class LdFlagDirective implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Updates the view based on the current flag value.
+   * Injects the flag value into the template context and shows appropriate content.
+   * 
+   * @param flagValue - The current value of the LaunchDarkly flag
+   */
   private updateView(flagValue: any) {
     // Clear existing views
     this.viewContainer.clear();
@@ -155,14 +273,18 @@ export class LdFlagDirective implements OnInit, OnDestroy {
         $implicit: flagValue,
         flagValue: flagValue,
         fallback: this.currentFallback,
-        isEmpty: this.isEmpty(flagValue),
-        isTruthy: Boolean(flagValue)
       });
     }
     
     this.cdr.markForCheck();
   }
 
+  /**
+   * Checks if a value is considered empty.
+   * 
+   * @param value - The value to check
+   * @returns true if the value is empty, false otherwise
+   */
   private isEmpty(value: any): boolean {
     return value === null || value === undefined || value === '' || 
            (Array.isArray(value) && value.length === 0) ||

@@ -2,14 +2,15 @@
 
 A comprehensive Angular library for integrating LaunchDarkly feature flags with reactive directives and services.
 
+**NOTE:** This library is not officially supported by LaunchDarkly. 
+
 ## Features
 
 - 🚀 **Reactive Directives**: Built-in directives for conditional rendering, styling, and event tracking
 - 📊 **Real-time Updates**: Automatic flag updates without page refresh
-- 🎯 **User Context Management**: Easy user identification and context switching
+- 🎯 **Context Management**: Easy user identification and context switching
 - 📈 **Event Tracking**: Built-in analytics and conversion tracking
 - 🔧 **TypeScript Support**: Full TypeScript support with comprehensive type definitions
-- 🧪 **Testing Ready**: Comprehensive test suite and testing utilities
 
 ## Installation
 
@@ -22,16 +23,46 @@ npm install launchdarkly-angular
 ### 1. Import the Module
 
 ```typescript
-import { LaunchDarklyAngularModule } from 'launchdarkly-angular';
+import { APP_INITIALIZER, NgModule, NgZone } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { AppComponent } from './app.component';
+import { LaunchDarklyService, LD_SERVICE_CONFIG, LaunchDarklyAngularModule } from 'launchdarkly-angular';
+
+import { environment } from '../environments/environment';
 
 @NgModule({
+  declarations: [
+    AppComponent
+  ],
   imports: [
-    LaunchDarklyAngularModule.forRoot({
-      clientId: 'your-client-id',
-      context: { key: 'user123', name: 'John Doe' },
-      options: { streaming: true }
-    })
-  ]
+    BrowserModule,
+    LaunchDarklyAngularModule
+  ],
+  providers: [
+    {
+      provide: LD_SERVICE_CONFIG,
+      useValue: {
+        /* your LaunchDarkly client-side ID */
+        clientId: environment.launchDarklyClientId,
+        /* context to start with, should be set as early. Avoid using dummy contexts */
+        context: { key: 'demo-user', name: 'Demo User' },
+        /* LDOptions passed to the LaunchDarkly Client */
+        options: { 
+          streaming: true
+          bootstrap: "localStorage"
+        }
+      }
+    },
+    // Prevent a flash of fallback values by waiting for at most 200ms for LaunchDarkly to be ready
+    // for angular 17+, use provideAppInitializer(LaunchDarklyService.createAppInitializer(200)) instead
+    {
+      provide: APP_INITIALIZER,
+      useFactory: LaunchDarklyService.createAppInitializer(200),
+      deps: [LaunchDarklyService],
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent]
 })
 export class AppModule {}
 ```
@@ -92,11 +123,6 @@ Conditionally renders content based on feature flags.
 Universal directive for any flag type with template injection.
 
 ```html
-<!-- Boolean flag with conditional rendering -->
-<ng-template [ldFlag]="'new-feature'" [ldFlagFallback]="false" let-enabled>
-  <div *ngIf="enabled">New feature content</div>
-</ng-template>
-
 <!-- String flag with text injection -->
 <ng-template [ldFlag]="'welcome-message'" [ldFlagFallback]="'Welcome!'" let-message>
   <h1>{{ message }}</h1>
@@ -105,7 +131,7 @@ Universal directive for any flag type with template injection.
 
 ### LdSwitchDirective
 
-Switch-like conditional rendering for multiple cases.
+Switch-like conditional rendering for multi-variant flags.
 
 ```html
 <ng-container [ldSwitch]="'user-tier'" [ldSwitchFallback]="'basic'">
@@ -127,15 +153,20 @@ Conditionally applies CSS classes.
 
 ```html
 <!-- Apply class when flag is truthy -->
-<div [ldClassIf]="'premium-features'" [ldClass]="'premium-user'">
+<div [ldClassIf]="'enable-premium-features'" [ldClass]="'premium-user'">
   User content
 </div>
 
-<!-- Apply different classes based on condition -->
-<div [ldClassIf]="'user-tier'" 
+<!-- Use a fallback value if initialization fails -->
+<div [ldClassIf]="'enable-premium-features'" [ldClassIfFallback]="false" [ldClass]="'premium-user'">
+  User content
+</div>
+
+<!-- Apply different classes based matching a specific value -->
+<div [ldClassIf]="'config-user-tier'" 
      [ldClassIfValue]="'premium'" 
-     [ldClass]="'premium-user'" 
-     [ldElseClass]="'basic-user'">
+     [ldClassIfClass]="'premium-user'" 
+     [ldClassIfElseClass]="'basic-user'">
   User content
 </div>
 ```
