@@ -1,5 +1,5 @@
 import { Directive, Input, HostListener, ElementRef, OnInit, OnDestroy } from '@angular/core';
-import { LaunchDarklyService } from './launchdarkly.service';
+import { LaunchDarklyService } from '../services/launchdarkly.service';
 
 /**
  * Directive that automatically tracks events when users interact with elements.
@@ -11,13 +11,13 @@ import { LaunchDarklyService } from './launchdarkly.service';
  * <button [ldTrack]="'button-clicked'">Click me</button>
  * 
  * <!-- Track with custom data -->
- * <button [ldTrack]="'purchase'; data: {product: 'premium', price: 29.99}">Buy Premium</button>
+ * <button [ldTrack]="'purchase'" [ldTrackData]="{product: 'premium', price: 29.99}">Buy Premium</button>
  * 
  * <!-- Track conversion with metric value -->
- * <button [ldTrack]="'conversion'; value: 29.99; data: {product: 'premium'}">Buy Premium</button>
+ * <button [ldTrack]="'conversion'" [ldTrackValue]="29.99" [ldTrackData]="{product: 'premium'}">Buy Premium</button>
  * 
  * <!-- Track on different events -->
- * <div [ldTrack]="'hover-detected'; event: 'mouseenter'; data: {section: 'hero'}">Hover me</div>
+ * <div [ldTrack]="'hover-detected'" [ldTrackEvent]="'mouseenter'" [ldTrackData]="{section: 'hero'}">Hover me</div>
  * ```
  */
 @Directive({

@@ -125,9 +125,9 @@
         <!-- Test with theme = dark (which is the actual value) -->
         <div style="margin-bottom:8px;">
           <div [ldClassIf]="'theme'" 
-               [ldClassIfValue]="'dark'" 
-               [ldClassIfClass]="'dark-theme'"
-               [ldClassIfFallback]="'light'"
+               [ldClassValue]="'dark'" 
+               [ldClass]="'dark-theme'"
+               [ldClassFallback]="'light'"
                style="padding:12px;border-radius:8px;margin:4px 0;">
             <strong>Dark Theme Card:</strong> This card gets dark theme styling when theme = 'dark'
           </div>
@@ -136,9 +136,9 @@
         <!-- Test with advanced-features = false (which is the actual value) -->
         <div style="margin-bottom:8px;">
           <div [ldClassIf]="'advanced-features'" 
-               [ldClassIfValue]="false" 
-               [ldClassIfClass]="'feature-disabled'"
-               [ldClassIfFallback]="true"
+               [ldClassValue]="false" 
+               [ldClass]="'feature-disabled'"
+               [ldClassFallback]="true"
                style="padding:12px;border-radius:8px;margin:4px 0;">
             <strong>Disabled Feature Card:</strong> This card gets disabled styling when advanced-features is false
           </div>
@@ -146,42 +146,52 @@
         
         <!-- Test with elseClass -->
         
-        <!-- Test with ldStyle directive -->
+        <!-- Test with ldStyleIf directive -->
         <div style="margin-top:16px;">
-          <h4 style="margin:0 0 8px 0;font-size:14px;">Conditional Inline Styles (ldStyle):</h4>
+          <h4 style="margin:0 0 8px 0;font-size:14px;">Conditional Inline Styles (ldStyleIf):</h4>
 
-          <!-- Test with theme = dark (which is the actual value) -->
+          <!-- Test with theme = dark using new object syntax -->
           <div style="margin-bottom:8px;">
-            <div [ldStyle]="'theme'" 
+            <div [ldStyleIf]="'theme'" 
                  [ldStyleValue]="'dark'" 
-                 [ldStyleStyle]="'background: #2c3e50; color: white; border: 2px solid #34495e'"
+                 [ldStyle]="{backgroundColor: '#2c3e50', color: 'white', border: '2px solid #34495e'}"
                  [ldStyleFallback]="'light'"
                  style="padding:12px;border-radius:8px;margin:4px 0;">
-              <strong>Dark Theme Card:</strong> This card gets dark theme inline styles when theme = 'dark'
+              <strong>Dark Theme Card:</strong> This card gets dark theme inline styles when theme = 'dark' (object syntax)
             </div>
           </div>
           
-          <!-- Test with advanced-features = false (which is the actual value) -->
+          <!-- Test with advanced-features = false using new object syntax -->
           <div style="margin-bottom:8px;">
-            <div [ldStyle]="'advanced-features'" 
+            <div [ldStyleIf]="'advanced-features'" 
                  [ldStyleValue]="false" 
-                 [ldStyleStyle]="'background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb'"
-                 [ldStyleElseStyle]="'background: #d4edda; color: #155724; border: 2px solid #c3e6cb'"
+                 [ldStyle]="{backgroundColor: '#f8d7da', color: '#721c24', border: '2px solid #f5c6cb'}"
+                 [ldStyleElse]="{backgroundColor: '#d4edda', color: '#155724', border: '2px solid #c3e6cb'}"
                  [ldStyleFallback]="true"
                  style="padding:12px;border-radius:8px;margin:4px 0;">
-              <strong>Feature Status Card:</strong> This card gets different inline styles based on advanced-features flag
+              <strong>Feature Status Card:</strong> This card gets different inline styles based on advanced-features flag (object syntax)
             </div>
           </div>
           
-          <!-- Test with user-tier = premium -->
+          <!-- Test with user-tier = premium using new object syntax -->
           <div style="margin-bottom:8px;">
-            <div [ldStyle]="'user-tier'" 
+            <div [ldStyleIf]="'user-tier'" 
                  [ldStyleValue]="'premium'" 
-                 [ldStyleStyle]="'background: linear-gradient(45deg, #ffd700, #ffed4e); color: #8b4513; border: 2px solid #daa520'"
-                 [ldStyleElseStyle]="'background: #e9ecef; color: #495057; border: 2px solid #ced4da'"
+                 [ldStyle]="{background: 'linear-gradient(45deg, #ffd700, #ffed4e)', color: '#8b4513', border: '2px solid #daa520'}"
+                 [ldStyleElse]="{backgroundColor: '#e9ecef', color: '#495057', border: '2px solid #ced4da'}"
                  [ldStyleFallback]="'basic'"
                  style="padding:12px;border-radius:8px;margin:4px 0;">
-              <strong>Premium User Card:</strong> This card gets premium styling when user-tier = 'premium'
+              <strong>Premium User Card:</strong> This card gets premium styling when user-tier = 'premium' (object syntax)
+            </div>
+          </div>
+
+          <!-- Test Angular unit syntax support -->
+          <div style="margin-bottom:8px;">
+            <div [ldStyleIf]="'responsive-design'" 
+                 [ldStyle]="{fontSize: '18px', marginTop: '1rem', paddingLeft: '2em', backgroundColor: '#f0f8ff'}"
+                 [ldStyleFallback]="false"
+                 style="padding:12px;border-radius:8px;margin:4px 0;">
+              <strong>Unit Syntax Test:</strong> This card uses Angular's unit syntax (fontSize: '18px', marginTop: '1rem', paddingLeft: '2em')
             </div>
           </div>
         </div>
@@ -207,15 +217,15 @@
           <div>&nbsp;&nbsp;&lt;ng-template [ldSwitchCase]="'value2'"&gt;</div>
           <div>&nbsp;&nbsp;&lt;ng-template ldSwitchDefault&gt;</div>
           <div style="margin-top:8px;"><strong>Conditional Styling (ldClassIf):</strong></div>
-          <div>[ldClassIf]="'flag'" [ldClassIfClass]="'class-name'"</div>
-          <div>[ldClassIf]="'flag'" [ldClassIfValue]="'value'" [ldClassIfClass]="'class-name'"</div>
-          <div>[ldClassIf]="'flag'" [ldClassIfClass]="'class1 class2'"</div>
-          <div>[ldClassIf]="'flag'" [ldClassIfValue]="'value'" [ldClassIfClass]="'class1'" [ldClassIfElseClass]="'class2'"</div>
-          <div style="margin-top:8px;"><strong>Conditional Inline Styles (ldStyle):</strong></div>
-          <div>[ldStyle]="'flag'" [ldStyleStyle]="'background: red; color: white'"</div>
-          <div>[ldStyle]="'flag'" [ldStyleValue]="'value'" [ldStyleStyle]="'background: blue; color: white'"</div>
-          <div>[ldStyle]="'flag'" [ldStyleStyle]="'background: green'" [ldStyleElseStyle]="'background: gray'"</div>
-          <div>[ldStyle]="'flag'" [ldStyleValue]="'value'" [ldStyleStyle]="'background: gold'" [ldStyleElseStyle]="'background: silver'"</div>
+          <div>[ldClassIf]="'flag'" [ldClass]="'class-name'"</div>
+          <div>[ldClassIf]="'flag'" [ldClassValue]="'value'" [ldClass]="'class-name'"</div>
+          <div>[ldClassIf]="'flag'" [ldClass]="'class1 class2'"</div>
+          <div>[ldClassIf]="'flag'" [ldClassValue]="'value'" [ldClass]="'class1'" [ldClassElse]="'class2'"</div>
+          <div style="margin-top:8px;"><strong>Conditional Inline Styles (ldStyleIf):</strong></div>
+          <div>[ldStyleIf]="'flag'" [ldStyle]="{{ '{' }}backgroundColor: 'red', color: 'white'{{ '}' }}"</div>
+          <div>[ldStyleIf]="'flag'" [ldStyleValue]="'value'" [ldStyle]="{{ '{' }}backgroundColor: 'blue', color: 'white'{{ '}' }}"</div>
+          <div>[ldStyleIf]="'flag'" [ldStyle]="{{ '{' }}backgroundColor: 'green'{{ '}' }}" [ldStyleElse]="{{ '{' }}backgroundColor: 'gray'{{ '}' }}"</div>
+          <div>[ldStyleIf]="'flag'" [ldStyleValue]="'value'" [ldStyle]="{{ '{' }}backgroundColor: 'gold'{{ '}' }}" [ldStyleElse]="{{ '{' }}backgroundColor: 'silver'{{ '}' }}"</div>
           <div style="margin-top:8px;"><strong>Event Tracking:</strong></div>
           <div>[ldTrack]="'button-clicked'" [ldTrackData]="dataObject"</div>
           <div>[ldTrack]="'conversion'" [ldTrackValue]="29.99" [ldTrackData]="dataObject"</div>
@@ -236,7 +246,7 @@
         <li>Use <code>[ldIfElse]</code> to show alternative content when condition is false: <code>[ldIfElse]="elseTemplate"</code></li>
         <li>Use the <code>[ldFlag]</code> directive for content injection: <code>&lt;ng-template [ldFlag]="'flag-name'" [ldFlagFallback]="defaultValue" let-value&gt;</code></li>
         <li>Use the <code>[ldSwitch]</code> directive for multiple cases: <code>&lt;ng-container [ldSwitch]="'flag-name'" [ldSwitchFallback]="defaultValue"&gt;</code></li>
-        <li>Use the <code>[ldClassIf]</code> directive for conditional styling: <code>[ldClassIf]="'flag-name'" [ldClassIfClass]="'css-class'"</code></li>
+        <li>Use the <code>[ldClassIf]</code> directive for conditional styling: <code>[ldClassIf]="'flag-name'" [ldClass]="'css-class'"</code></li>
         <li>Use the <code>[ldTrack]</code> directive for automatic event tracking: <code>[ldTrack]="'event-name'" [ldTrackData]="dataObject"</code></li>
       </ol>
     </section>

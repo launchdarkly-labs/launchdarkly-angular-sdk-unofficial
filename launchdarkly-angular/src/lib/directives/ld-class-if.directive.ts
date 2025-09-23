@@ -1,6 +1,6 @@
 import { Directive, Input, ElementRef, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { LaunchDarklyService } from './launchdarkly.service';
+import { LaunchDarklyService } from '../services/launchdarkly.service';
 
 /**
  * Directive for conditionally applying CSS classes based on LaunchDarkly feature flags.
@@ -9,27 +9,27 @@ import { LaunchDarklyService } from './launchdarkly.service';
  * @example
  * ```html
  * <!-- Apply class when flag is truthy -->
- * <div [ldClassIf]="'premium-features'" [ldClassIfClass]="'premium-user'">
+ * <div [ldClassIf]="'premium-features'" [ldClass]="'premium-user'">
  *   User content
  * </div>
  * 
  * <!-- Apply class when flag matches specific value -->
- * <div [ldClassIf]="'user-tier'" [ldClassIfValue]="'premium'" [ldClassIfClass]="'premium-tier'">
+ * <div [ldClassIf]="'user-tier'" [ldClassValue]="'premium'" [ldClass]="'premium-tier'">
  *   User content
  * </div>
  * 
  * <!-- Apply multiple classes -->
- * <div [ldClassIf]="'theme'" [ldClassIfValue]="'dark'" [ldClassIfClass]="'dark-theme active'">
+ * <div [ldClassIf]="'theme'" [ldClassValue]="'dark'" [ldClass]="'dark-theme active'">
  *   Themed content
  * </div>
  * 
  * <!-- Apply different classes based on condition -->
- * <div [ldClassIf]="'user-tier'" [ldClassIfValue]="'premium'" [ldClassIfClass]="'premium-user'" [ldClassIfElseClass]="'basic-user'">
+ * <div [ldClassIf]="'user-tier'" [ldClassValue]="'premium'" [ldClass]="'premium-user'" [ldClassElse]="'basic-user'">
  *   User content
  * </div>
  * 
  * <!-- Apply class when flag is false -->
- * <div [ldClassIf]="'premium-features'" [ldClassIfValue]="false" [ldClassIfClass]="'basic-user'">
+ * <div [ldClassIf]="'premium-features'" [ldClassValue]="false" [ldClass]="'basic-user'">
  *   Basic user content
  * </div>
  * ```
@@ -63,7 +63,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
   /**
    * The fallback value to use if the flag is not available or evaluation fails
    */
-  @Input() set ldClassIfFallback(fallback: any) {
+  @Input() set ldClassFallback(fallback: any) {
     this.currentFallback = fallback;
     this.updateSubscription();
   }
@@ -72,7 +72,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * The specific value to check for. If provided, class is applied only if flag equals this value.
    * If not provided, class is applied if flag is truthy.
    */
-  @Input() set ldClassIfValue(expectedValue: any) {
+  @Input() set ldClassValue(expectedValue: any) {
     this.currentValue = expectedValue;
     this.updateSubscription();
   }
@@ -81,7 +81,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * The CSS class(es) to apply when the condition is met.
    * Can be a single class name or multiple classes separated by spaces.
    */
-  @Input() set ldClassIfClass(className: string) {
+  @Input() set ldClass(className: string) {
     this.currentClass = className;
     this.updateSubscription();
   }
@@ -90,7 +90,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * The CSS class(es) to apply when the condition is not met.
    * Can be a single class name or multiple classes separated by spaces.
    */
-  @Input() set ldClassIfElseClass(className: string) {
+  @Input() set ldClassElse(className: string) {
     this.currentElseClass = className;
     this.updateSubscription();
   }

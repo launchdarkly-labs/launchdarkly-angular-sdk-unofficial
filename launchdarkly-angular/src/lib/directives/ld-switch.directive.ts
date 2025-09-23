@@ -1,6 +1,6 @@
 import { Directive, Input, OnInit, OnDestroy } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { LaunchDarklyService } from './launchdarkly.service';
+import { LaunchDarklyService } from '../services/launchdarkly.service';
 
 /**
  * Container directive for LaunchDarkly feature flags with multiple cases.

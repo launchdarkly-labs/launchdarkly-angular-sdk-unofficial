@@ -1,6 +1,6 @@
 import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { LaunchDarklyService } from './launchdarkly.service';
+import { LaunchDarklyService } from '../services/launchdarkly.service';
 
 /**
  * Structural directive that conditionally renders content based on a LaunchDarkly feature flag.
@@ -15,6 +15,15 @@ import { LaunchDarklyService } from './launchdarkly.service';
  * 
  * <!-- Number flag -->
  * <div *ldIf="'max-items'; fallback: 5; value: 10">Show 10 items</div>
+ * 
+ * <!-- With else template -->
+ * <ng-template [ldIf]="'premium-feature'" [ldIfFallback]="false" [ldIfElse]="premiumUnavailable">
+ *   <div>Premium content</div>
+ * </ng-template>
+ * 
+ * <ng-template #premiumUnavailable>
+ *   <div>Premium feature not available</div>
+ * </ng-template>
  * ```
  */
 @Directive({
@@ -25,6 +34,7 @@ export class LdIfDirective implements OnInit, OnDestroy {
   private currentFlagKey?: string;
   private currentFallback?: any;
   private currentValue?: any;
+  private elseTemplate?: TemplateRef<any>;
   private instanceId = Math.random().toString(36).substr(2, 9);
 
   constructor(
@@ -56,6 +66,14 @@ export class LdIfDirective implements OnInit, OnDestroy {
    */
   @Input() set ldIfValue(value: any) {
     this.currentValue = value;
+    this.updateSubscription();
+  }
+
+  /**
+   * Template to show when the condition is false
+   */
+  @Input() set ldIfElse(template: TemplateRef<any>) {
+    this.elseTemplate = template;
     this.updateSubscription();
   }
 
@@ -95,16 +113,19 @@ export class LdIfDirective implements OnInit, OnDestroy {
   }
 
   private updateView(shouldShow: boolean) {
+    // Clear existing views
+    this.viewContainer.clear();
+
     if (shouldShow) {
-      // Create and insert the view
-      if (this.viewContainer.length === 0) {
-        this.viewContainer.createEmbeddedView(this.templateRef);
-        this.cdr.markForCheck();
-      }
+      // Show the main template
+      this.viewContainer.createEmbeddedView(this.templateRef);
     } else {
-      // Clear the view
-      this.viewContainer.clear();
-      this.cdr.markForCheck();
+      // Show the else template if provided
+      if (this.elseTemplate) {
+        this.viewContainer.createEmbeddedView(this.elseTemplate);
+      }
     }
+    
+    this.cdr.markForCheck();
   }
 }

@@ -1,6 +1,6 @@
 import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { LaunchDarklyService } from './launchdarkly.service';
+import { LaunchDarklyService } from '../services/launchdarkly.service';
 
 /**
  * Universal structural directive for LaunchDarkly feature flags.
@@ -29,7 +29,7 @@ import { LaunchDarklyService } from './launchdarkly.service';
  * </ng-template>
  * 
  * <!-- With else template for fallback content -->
- * <ng-template [ldFlag]="'premium-feature'" [fallback]="false" [else]="premiumUnavailable" let-enabled>
+ * <ng-template [ldFlag]="'premium-feature'" [ldFlagFallback]="false" [ldFlagElse]="premiumUnavailable" let-enabled>
  *   <div *ngIf="enabled">Premium content</div>
  * </ng-template>
  * 
@@ -77,15 +77,15 @@ export class LdFlagDirective implements OnInit, OnDestroy {
    * The specific value to check for. If provided, content is shown only if flag equals this value.
    * If not provided, the flag value itself is injected into the template context.
    */
-  @Input() set value(expectedValue: any) {
+  @Input() set ldFlagValue(expectedValue: any) {
     this.currentValue = expectedValue;
     this.updateSubscription();
   }
 
   /**
-   * Template to show when the condition is false (only used when 'value' is specified)
+   * Template to show when the condition is false (only used when 'ldFlagValue' is specified)
    */
-  @Input() set else(template: TemplateRef<any>) {
+  @Input() set ldFlagElse(template: TemplateRef<any>) {
     this.elseTemplate = template;
     this.updateSubscription();
   }
@@ -93,7 +93,7 @@ export class LdFlagDirective implements OnInit, OnDestroy {
   /**
    * Template to show while the flag is loading
    */
-  @Input() set loading(template: TemplateRef<any>) {
+  @Input() set ldFlagLoading(template: TemplateRef<any>) {
     this.loadingTemplate = template;
     this.updateSubscription();
   }
