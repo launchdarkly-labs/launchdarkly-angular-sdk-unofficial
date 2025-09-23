@@ -21,6 +21,25 @@
   },
   "homepage": "https://github.com/launchdarkly-labs/launchdarkly-angular#readme",
   "type": "module",
+  "main": "dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
+  "module": "dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
+  "types": "dist/launchdarkly-angular/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
+      "require": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
+      "types": "./dist/launchdarkly-angular/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/launchdarkly-angular",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "ng": "ng",
     "build": "ng build launchdarkly-angular",
@@ -34,7 +53,18 @@
     "dev": "npm run demo:serve",
     "start": "npm run demo:serve",
     "compodoc": "npx compodoc -c compodoc.json -p tsconfig.doc.json",
-    "compodoc:serve": "npx compodoc -c compodoc.json -p tsconfig.doc.json -s"
+    "compodoc:serve": "npx compodoc -c compodoc.json -p tsconfig.doc.json -s",
+    "prepublishOnly": "npm run build:prod && npm test",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "release:prepare": "npm run lint && npm test && npm run build:prod",
+    "release:push": "git push origin main --tags",
+    "release:patch": "npm run version:patch && npm run release:push",
+    "release:minor": "npm run version:minor && npm run release:push",
+    "release:major": "npm run version:major && npm run release:push",
+    "release:notes": "node scripts/generate-release-notes.js",
+    "test:release": "node scripts/test-release.js"
   },
   "peerDependencies": {
     "@angular/common": "^16.0.0 || ^17.0.0 || ^18.0.0",

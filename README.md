@@ -1,6 +1,9 @@
 # LaunchDarkly Angular
 
-A comprehensive Angular library for integrating LaunchDarkly feature flags with reactive directives and services.
+A comprehensive Angular library for integrating LaunchDarkly feature flags with reactive directives and services. 
+
+- [Documentation](https://launchdarkly-labs.github.io/launchdarkly-angular/)
+- [Demo Application](./examples/demo)
 
 **NOTE:** This library is not officially supported by LaunchDarkly. 
 
@@ -11,6 +14,7 @@ A comprehensive Angular library for integrating LaunchDarkly feature flags with 
 - 🎯 **Context Management**: Easy user identification and context switching
 - 📈 **Event Tracking**: Built-in analytics and conversion tracking
 - 🔧 **TypeScript Support**: Full TypeScript support with comprehensive type definitions
+
 
 ## Installation
 

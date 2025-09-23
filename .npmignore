@@ -1,0 +1,73 @@
+# Source files
+src/
+examples/
+documentation/
+
+# Development files
+*.ts
+!*.d.ts
+tsconfig*.json
+compodoc.json
+
+# Build artifacts (except dist/launchdarkly-angular)
+dist/demo/
+
+# Development dependencies
+node_modules/
+package-lock.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation build
+documentation/
+
+# Demo app
+examples/demo/
+
+# Development scripts
+*.md
+!README.md
+!LICENSE
