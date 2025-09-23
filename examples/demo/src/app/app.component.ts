@@ -25,18 +25,22 @@ export class AppComponent {
     });
   }
 
-  identifyUserA() { 
-    this.ld.identify$({ kind: 'user', key: 'demo-user-1', country: 'US' }).subscribe({
-      next: () => console.log('User A identified successfully'),
-      error: (err) => console.error('Failed to identify User A:', err)
-    });
+  async identifyUserA() { 
+    try {
+      await this.ld.setContext({ kind: 'user', key: 'demo-user-1', country: 'US' }, 5000);
+      console.log('User A context set successfully');
+    } catch (err) {
+      console.error('Failed to set User A context:', err);
+    }
   }
   
-  identifyUserB() { 
-    this.ld.identify$({ kind: 'user', key: 'demo-user-2', country: 'CA' }).subscribe({
-      next: () => console.log('User B identified successfully'),
-      error: (err) => console.error('Failed to identify User B:', err)
-    });
+  async identifyUserB() { 
+    try {
+      await this.ld.setContext({ kind: 'user', key: 'demo-user-2', country: 'CA' }, 5000);
+      console.log('User B context set successfully');
+    } catch (err) {
+      console.error('Failed to set User B context:', err);
+    }
   }
 
   trackEvent() {

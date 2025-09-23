@@ -214,16 +214,18 @@ this.ldService.variationDetail$('pricing-tier', 'basic').subscribe(detail => {
 });
 ```
 
-##### `identify$(context: LDContext, timeoutMs?: number): Observable<void>`
+##### `setContext(context: LDContext, timeoutMs?: number): Promise<void>`
 
 Changes the user context for the LaunchDarkly client.
 
 ```typescript
 const newContext = { key: 'user123', email: 'user@example.com' };
-this.ldService.identify$(newContext, 5000).subscribe({
-  next: () => console.log('Context updated'),
-  error: (err) => console.error('Failed to update context', err)
-});
+try {
+  await this.ldService.setContext(newContext, 5000);
+  console.log('Context updated successfully');
+} catch (err) {
+  console.error('Failed to update context', err);
+}
 ```
 
 ##### `track(key: string, data?: any, metricValue?: number): void`
@@ -454,7 +456,7 @@ this.ldService.waitUntilReady$(1000).subscribe(isReady => {
 
 #### 3. User Context Not Updating
 
-- Use `identify$` method with timeout
+- Use `setContext` method with timeout
 - Check that context object is valid
 - Verify targeting rules in LaunchDarkly
 

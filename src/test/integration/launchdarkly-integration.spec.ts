@@ -64,19 +64,15 @@ describe('LaunchDarklyAngularModule Integration', () => {
     }).not.toThrow();
   });
 
-  it('should handle user identification', (done) => {
+  it('should handle user context setting', async () => {
     const newContext = { key: 'new-user' };
-    ldService.identify$(newContext, 1000).subscribe({
-      next: () => {
-        expect(true).toBe(true); // Just verify it doesn't error
-        done();
-      },
-      error: (err: any) => {
-        // It's okay if this errors in test environment
-        expect(err).toBeDefined();
-        done();
-      }
-    });
+    try {
+      await ldService.setContext(newContext, 1000);
+      expect(true).toBe(true); // Just verify it doesn't error
+    } catch (err: any) {
+      // It's okay if this errors in test environment
+      expect(err).toBeDefined();
+    }
   });
 
   it('should flush events without throwing', async () => {

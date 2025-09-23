@@ -282,7 +282,7 @@ export const environment = {
 ### 1. Custom Attributes
 Add custom attributes to user context:
 ```typescript
-await this.flags.identify({ 
+await this.flags.setContext({ 
   kind: 'user', 
   key: 'demo-user-1', 
   country: 'US',

@@ -1,4 +1,4 @@
-import { Injectable, NgZone, Inject, Optional } from '@angular/core';
+import { Injectable, NgZone, Inject } from '@angular/core';
 import { BehaviorSubject, Observable, distinctUntilChanged, map, switchMap, filter, from, of, startWith, catchError, throwError, timeout, concatMap, take, Subject, MonoTypeOperatorFunction, timer, race, firstValueFrom } from 'rxjs';
 import {
   initialize,
@@ -12,6 +12,7 @@ import {
 import equal from 'fast-deep-equal';
 
 import { LDServiceConfig, FlagChangeEvent, LD_SERVICE_CONFIG } from '../interfaces/launchdarkly.interface';
+import { LDFlagSet } from 'launchdarkly-js-sdk-common';
 
 /**
  * Utility operator for conditional application
@@ -51,10 +52,6 @@ export class LaunchDarklyService {
     @Inject(NgZone) private zone: NgZone,
     @Inject(LD_SERVICE_CONFIG) private config: LDServiceConfig
   ) {
-    console.log('LD ctor deps:', { zone: !!zone, configKeys: Object.keys(this.config || {}) });
-    console.log('LaunchDarklyService constructor called with config:', this.config);
-    // Auto-initialize if context is provided
-    console.log("fast-deep-equal", equal);
     this._initialize(this.config.clientId, this.config.context, this.config.options);
   }
 
@@ -101,6 +98,15 @@ export class LaunchDarklyService {
    */
   get client$(): Observable<LDClient | undefined> {
     return this.clientSubject$.asObservable();
+  }
+
+  // convience method, returns a promise that resolves to the client
+  // will be used to handle lazy initialization
+  private getClient(): Promise<LDClient> {
+    return firstValueFrom(this.clientSubject$.pipe(
+      filter((client): client is LDClient => client !== undefined),
+      take(1)
+    ))
   }
   
   /**
@@ -149,6 +155,7 @@ export class LaunchDarklyService {
    * ```
    */
   waitForInitialization$(timeoutMs: number): Observable<boolean> {
+    // TODO: this doesn't reject on errors
     return this.isInitializedSubject$.pipe(
       switchMap((isInitialized) => {
         // If already initialized, return the subject immediately
@@ -199,7 +206,6 @@ export class LaunchDarklyService {
    */
   private _initialize(clientId: string, context: LDContext, options?: LDOptions): void {
     // copy so we don't mutate the original options
-    console.log("[LaunchDarkly Service] initializing", clientId, context, options);
     const clientOptions: LDOptions = { streaming: true, ...(options ?? {}) } as LDOptions;
     if (this.clientSubject$.value) {
       console.error('[LaunchDarkly Service] initialize called after LD already initialized, skipping. please ensure this is only called once.');
@@ -210,7 +216,6 @@ export class LaunchDarklyService {
     this.clientSubject$.next(client);
     // Set up global flag change listener
     client.on('change', (settings: LDFlagChangeset) => {
-      console.log('[LaunchDarkly Service] Flag changes detected:', Object.keys(settings));
       this.zone.run(() => {
         Object.entries(settings).forEach(([key, { current, previous }]) => {
           this.flagChangesSubject$.next({
@@ -259,26 +264,12 @@ export class LaunchDarklyService {
    * });
    * ```
    */
-  variation$<T extends LDFlagValue = LDFlagValue>(key: string, fallback: T): Observable<T> {
-    return this.clientSubject$.pipe(
-      switchMap((client: LDClient | undefined) => {
-        if (!client) {
-          console.log("[LaunchDarkly Service] variation$ called before client is ready, returning fallback");
-          // Return fallback until client is ready
-          return of(fallback);
-        }
-
-        // Start with the current value, then listen for changes
-        return this.onFlagChange$(key).pipe(
-          map((changeEvent) => {
-            const value = this.variation<T>(key, fallback, client);
-            console.log("[LaunchDarkly Service] variation$ emitted", value);
-            return value;
-          }),
-          startWith(this.variation<T>(key, fallback, client)),
-          distinctUntilChanged((prev: T, curr: T) => equal(prev, curr))
-        );
-      })
+  variation$(key: string, fallback: LDFlagValue): Observable<LDFlagValue> {
+    // Start with the current value (fallback if client isn't ready), then listen for changes
+    return this.onFlagChange$(key).pipe(
+      map(() => this.variation(key, fallback)),
+      startWith(this.variation(key, fallback)),
+      distinctUntilChanged((prev: LDFlagValue, curr: LDFlagValue) => equal(prev, curr))
     );
   }
 
@@ -298,31 +289,12 @@ export class LaunchDarklyService {
    * });
    * ```
    */
-  variationDetail$<T extends LDFlagValue = LDFlagValue>(key: string, fallback: T): Observable<LDEvaluationDetail> {
-    return this.clientSubject$.pipe(
-      switchMap((client: LDClient | undefined) => {
-        if (!client) {
-          console.log("[LaunchDarkly Service] variationDetail$ called before client is ready, returning fallback detail");
-          // Return fallback detail until client is ready
-          const fallbackDetail: LDEvaluationDetail = {
-            value: fallback,
-            variationIndex: undefined,
-            reason: { kind: 'FALLBACK' }
-          };
-          return of(fallbackDetail);
-        }
-
-        // Start with the current detail, then listen for changes
-        return this.onFlagChange$(key).pipe(
-          map((changeEvent) => {
-            const detail = this.variationDetail<T>(key, fallback, client);
-            console.log("[LaunchDarkly Service] variationDetail$ emitted", detail);
-            return detail;
-          }),
-          startWith(this.variationDetail<T>(key, fallback, client)),
-          distinctUntilChanged((prev: LDEvaluationDetail, curr: LDEvaluationDetail) => equal(prev, curr))
-        );
-      })
+  variationDetail$(key: string, fallback: LDFlagValue): Observable<LDEvaluationDetail> {
+    // Start with the current detail (fallback if client isn't ready), then listen for changes
+    return this.onFlagChange$(key).pipe(
+      map(() => this.variationDetail(key, fallback)),
+      startWith(this.variationDetail(key, fallback)),
+      distinctUntilChanged((prev: LDEvaluationDetail, curr: LDEvaluationDetail) => equal(prev, curr))
     );
   }
 
@@ -335,15 +307,14 @@ export class LaunchDarklyService {
    * @param client - Optional LaunchDarkly client instance (uses current client if not provided)
    * @returns The flag value or fallback if evaluation fails
    */
-  private variation<T extends LDFlagValue = LDFlagValue>(key: string, fallback: T, client?: LDClient): T {
+  private variation(key: string, fallback: LDFlagValue, client?: LDClient): LDFlagValue {
     // Use the provided client instance to ensure consistency within event handlers
     // and prevent race conditions where this.client might change between calls
     const clientToUse = client ?? this.clientSubject$.value;
-    try { 
-      return (clientToUse?.variation(key, fallback) ?? fallback) as T; 
-    } catch { 
-      return fallback; 
+    if(!clientToUse) {
+      return fallback;
     }
+    return clientToUse.variation(key, fallback);
   }
 
   /**
@@ -355,23 +326,22 @@ export class LaunchDarklyService {
    * @param client - Optional LaunchDarkly client instance (uses current client if not provided)
    * @returns LDEvaluationDetail with flag value, variation index, and evaluation reason
    */
-  private variationDetail<T extends LDFlagValue = LDFlagValue>(key: string, fallback: T, client?: LDClient): LDEvaluationDetail {
+  private variationDetail(key: string, fallback: LDFlagValue, client?: LDClient): LDEvaluationDetail {
     // Use the provided client instance to ensure consistency within event handlers
     // and prevent race conditions where this.client might change between calls
     const clientToUse = client ?? this.clientSubject$.value;
+     
     if (!clientToUse) {
+      // we don't have a client set so we emulate a client not ready reason
+      // this only would happen if we add support for lazy initialization
       return {
         value: fallback,
         variationIndex: undefined,
-        reason: { kind: 'FALLBACK' }
+        reason: { kind: 'ERROR', errorKind: 'CLIENT_NOT_READY' }
       };
+    } else {
+      return clientToUse.variationDetail(key, fallback);
     }
-    const detail = clientToUse.variationDetail(key, fallback);
-    return {
-      value: detail.value ?? fallback,
-      variationIndex: detail.variationIndex,
-      reason: detail.reason ?? { kind: 'FALLBACK' }
-    } as LDEvaluationDetail;
   }
   
   /**
@@ -379,34 +349,30 @@ export class LaunchDarklyService {
    * This will trigger re-evaluation of all flags for the new context.
    * 
    * @param context - The new user context
-   * @param timeoutMs - Optional timeout in milliseconds for the identify operation
-   * @returns Observable that completes when the context change is successful
+   * @param timeoutMs - Optional timeout in milliseconds for the context change operation
+   * @returns Promise that resolves when the context change is successful
    * 
-   * @throws Will emit an error if the identify operation fails or times out
+   * @throws Will reject if the context change operation fails or times out
    * 
    * @example
    * ```typescript
    * const newContext = { key: 'user123', email: 'user@example.com' };
-   * this.ldService.identify$(newContext, 5000).subscribe({
-   *   next: () => console.log('Context updated'),
-   *   error: (err) => console.error('Failed to update context', err)
-   * });
+   * try {
+   *   await this.ldService.setContext(newContext, 5000);
+   *   console.log('Context updated successfully');
+   * } catch (err) {
+   *   console.error('Failed to update context', err);
+   * }
    * ```
    */
-  identify$(context: LDContext, timeoutMs?: number): Observable<void> {
-    if (!timeoutMs) {
-      console.warn('[LaunchDarkly Service] identify$ called without a timeout');
-    }
-    return this.clientSubject$.pipe(
-      filter((client): client is LDClient => client !== undefined),
-      concatMap((client) => {
-        const identifyPromise = client.identify(context).then(() => void 0);
-        return timeoutMs ? from(identifyPromise).pipe(timeout(timeoutMs)) : from(identifyPromise);
-      }),
-      catchError((error: any) => {
-        return throwError(() => error);
-      })
-    );
+  async setContext(context: LDContext, timeoutMs?: number): Promise<void> {
+    const client = await this.getClient();
+    const timeoutPromise : Promise<void> = timeoutMs ? new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('TimeoutError'));
+      }, timeoutMs);
+    }) : Promise.resolve();
+    return Promise.race([client.identify(context).then(() => void 0), timeoutPromise]);
   }
 
   /**
@@ -429,26 +395,22 @@ export class LaunchDarklyService {
    * ```
    */
   track(key: string, data?: any, metricValue?: number): void {
-    firstValueFrom(this.clientSubject$.pipe(
-      filter((client): client is LDClient => client !== undefined),
-      take(1)
-    )).then((client) => {
+    this.getClient().then((client) => {
       client.track(key, data, metricValue);
     }).catch((error: any) => {
-      console.error('[LaunchDarkly Service] Error tracking event:', error);
+      // this should never happen
+      console.error('[LaunchDarkly Service] Unexpected rejection when tracking event:', error);
     });
   }
 
   /**
    * Forces the LaunchDarkly client to flush any pending analytics events.
    * 
+   * @throws Will throw an error if the flush operation fails. Be sure to handle this error.
    * @returns Promise that resolves when the flush operation completes
    */
   async flush(): Promise<void> {
-    return firstValueFrom(this.clientSubject$.pipe(
-      take(1),
-      filter((client): client is LDClient => client !== undefined),
-      concatMap((client) => from(client.flush()))
-    ));
+    const client = await this.getClient();
+    return client.flush();
   }
 }

@@ -103,21 +103,17 @@ describe('LaunchDarklyService', () => {
     });
   });
 
-  describe('identify$', () => {
-    it('should return observable for context change', (done) => {
+  describe('setContext', () => {
+    it('should return promise for context change', async () => {
       const newContext = { key: 'new-user' };
       
-      service.identify$(newContext, 1000).subscribe({
-        next: () => {
-          expect(true).toBe(true); // Just verify it doesn't error
-          done();
-        },
-        error: (err: any) => {
-          // It's okay if this errors in test environment
-          expect(err).toBeDefined();
-          done();
-        }
-      });
+      try {
+        await service.setContext(newContext, 1000);
+        expect(true).toBe(true); // Just verify it doesn't error
+      } catch (err: any) {
+        // It's okay if this errors in test environment
+        expect(err).toBeDefined();
+      }
     });
   });
 
