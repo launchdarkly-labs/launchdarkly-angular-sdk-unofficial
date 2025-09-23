@@ -1,0 +1,21 @@
+{
+  "$schema": "https://compodoc.app/schema.json",
+  "name": "LaunchDarkly Angular SDK",
+  "output": "./documentation",
+  "tsconfig": "./tsconfig.doc.json",
+  "theme": "gitbook",
+  "includesName": "Getting Started",
+  "disableCoverage": false,
+  "disableSourceCode": false,
+  "disableGraph": false,
+  "disableDependencies": false,
+  "disableSearch": false,
+  "hideGenerator": false,
+  "serve": false,
+  "port": 8080,
+  "silent": false,
+  "watch": false,
+  "exportFormat": "html",
+  "language": "en-US",
+  "toggleMenuItems": ["all"]
+}
