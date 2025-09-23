@@ -1,6 +1,6 @@
 {
   "name": "@launchtarqly/launchdarkly-angular",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Angular library for LaunchDarkly feature flags with reactive directives and services",
   "keywords": [
     "angular",
