@@ -1,4 +1,4 @@
-name: Publish to NPM
+name: Publish to GitHub Packages
 
 on:
   push:
@@ -57,8 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     environment: 
-      name: npm-publish
-      url: https://www.npmjs.com/package/@launchtarqly/launchdarkly-angular
+      name: github-packages-publish
+      url: https://github.com/launchdarkly-labs/launchdarkly-angular/packages
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -75,13 +75,8 @@ jobs:
       - name: Build library
         run: npm run build:prod
 
-      - name: Publish to NPM
-        run: npm publish --registry=https://registry.npmjs.org
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to GitHub Packages
-        run: npm publish --registry=https://npm.pkg.github.com
+        run: cd dist/launchdarkly-angular && npm publish --registry=https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

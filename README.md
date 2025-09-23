@@ -2,8 +2,8 @@
 
 A comprehensive Angular library for integrating LaunchDarkly feature flags with reactive directives and services. 
 
-- [Documentation](https://launchdarkly-labs.github.io/launchdarkly-angular/)
-- [Demo Application](./examples/demo)
+- [Documentation](https://launchdarkly-labs.github.io/launchdarkly-angular-sdk-unofficial/)
+- [Demo Application](https://github.com/launchdarkly-labs/launchdarkly-angular-sdk-unofficial/tree/main/examples/demo)
 
 **NOTE:** This library is not officially supported by LaunchDarkly. 
 

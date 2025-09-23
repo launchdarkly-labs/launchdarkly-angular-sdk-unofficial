@@ -2,6 +2,7 @@
   "name": "@launchtarqly/launchdarkly-angular",
   "version": "0.3.0",
   "description": "Angular library for LaunchDarkly feature flags with reactive directives and services",
+  "private": false,
   "keywords": [
     "angular",
     "launchdarkly",
@@ -14,12 +15,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/launchdarkly-labs/launchdarkly-angular.git"
+    "url": "https://github.com/launchdarkly-labs/launchdarkly-angular-sdk-unofficial.git"
   },
   "bugs": {
-    "url": "https://github.com/launchdarkly-labs/launchdarkly-angular/issues"
+    "url": "https://github.com/launchdarkly-labs/launchdarkly-angular-sdk-unofficial/issues"
   },
-  "homepage": "https://github.com/launchdarkly-labs/launchdarkly-angular#readme",
+  "homepage": "https://launchdarkly-labs.github.io/launchdarkly-angular-sdk-unofficial/",
   "type": "module",
   "engines": {
     "node": ">=20.0.0",
@@ -39,7 +40,7 @@
     "start": "npm run demo:serve",
     "compodoc": "npx compodoc -c compodoc.json -p tsconfig.doc.json",
     "compodoc:serve": "npx compodoc -c compodoc.json -p tsconfig.doc.json -s",
-    "prepublishOnly": "npm run build:prod && npm test",
+    "prepublishOnly": "npm run build:prod",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
     "version:major": "npm version major",
