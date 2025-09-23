@@ -5,44 +5,34 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 /**
  * Directive for conditionally applying inline CSS styles based on LaunchDarkly feature flags.
  * Similar to ngStyle, but reactive to LaunchDarkly flag changes.
- * 
- * @example
+ *
+ * Examples (existing API):
  * ```html
- * <!-- Apply styles when flag is truthy -->
- * <div [ldStyleIf]="'premium-features'" [ldStyle]="{backgroundColor: '#007bff', color: 'white'}">
- *   Premium content
- * </div>
- * 
- * <!-- Apply styles when flag matches specific value -->
- * <div [ldStyleIf]="'theme'" 
- *      [ldStyleValue]="'dark'" 
- *      [ldStyle]="{backgroundColor: '#2c3e50', color: 'white', border: '2px solid #34495e'}">
- *   Themed content
- * </div>
- * 
- * <!-- Apply different styles based on condition -->
- * <div [ldStyleIf]="'user-tier'" 
- *      [ldStyleValue]="'premium'" 
- *      [ldStyle]="{background: 'linear-gradient(45deg, #ffd700, #ffed4e)', color: '#8b4513'}"
- *      [ldStyleElse]="{backgroundColor: '#e9ecef', color: '#495057'}">
- *   User content
- * </div>
- * 
- * <!-- Using Angular's unit syntax (like ngStyle) -->
- * <div [ldStyleIf]="'responsive-design'" 
- *      [ldStyle]="{fontSize: '16px', marginTop: '2rem', paddingLeft: '1em'}">
- *   Responsive content
- * </div>
- * 
- * <!-- Using computed styles from component -->
- * <div [ldStyleIf]="'user-tier'" 
- *      [ldStyleValue]="'premium'" 
- *      [ldStyle]="getPremiumStyles()"
- *      [ldStyleElse]="getBasicStyles()">
- *   User content
- * </div>
+ * <div [ldStyleIf]="'flag'" [ldStyleIfStyle]="{ backgroundColor: 'red' }"></div>
+ * <div [ldStyleIf]="'flag'" [ldStyleIfValue]="'dark'" [ldStyleIfStyle]="{ color: 'white' }"></div>
+ * <div [ldStyleIf]="'flag'" [ldStyleIfStyle]="{ color: 'white' }" [ldStyleIfElseStyle]="{ color: 'black' }"></div>
+ * ```
+ *
+ * Shorthand API (single binding):
+ * ```html
+ * <!-- Tuple: [flag, style] -->
+ * <div [ldStyleIf]="['flag', { backgroundColor: 'red' }]"></div>
+ *
+ * <!-- Tuple: [flag, value, style, elseStyle?] -->
+ * <div [ldStyleIf]="['theme', 'dark', { color: 'white' }, { color: 'black' }]"></div>
+ *
+ * <!-- Object config: { flag, style?, elseStyle?, value?, fallback? } -->
+ * <div [ldStyleIf]="{ flag: 'theme', value: 'dark', style: { color: 'white' }, elseStyle: { color: 'black' } }"></div>
  * ```
  */
+type LdStyles = { [key: string]: any } | undefined;
+interface LdStyleIfConfig {
+  flag: string;
+  style?: { [key: string]: any };
+  elseStyle?: { [key: string]: any };
+  value?: any;
+  fallback?: any;
+}
 @Directive({
   selector: '[ldStyleIf]'
 })
@@ -62,17 +52,55 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
   ) {}
 
   /**
-   * The feature flag key to evaluate
+   * Primary input. Supports:
+   * - string: flag key
+   * - tuple: [flag, style] or [flag, value, style, elseStyle?]
+   * - object: { flag, style?, elseStyle?, value?, fallback? }
    */
-  @Input() set ldStyleIf(flagKey: string) {
-    this.currentFlagKey = flagKey;
-    this.updateSubscription();
+  @Input() set ldStyleIf(flagKeyOrConfig: string | [any, ...any[]] | LdStyleIfConfig) {
+    // string: just set the flag key
+    if (typeof flagKeyOrConfig === 'string') {
+      this.currentFlagKey = flagKeyOrConfig;
+      this.updateSubscription();
+      return;
+    }
+
+    // array shorthand
+    if (Array.isArray(flagKeyOrConfig)) {
+      const [flag, second, third, fourth] = flagKeyOrConfig;
+      this.currentFlagKey = flag;
+      if (typeof second === 'object' && third === undefined) {
+        // [flag, style]
+        this.currentStyles = second as { [key: string]: any };
+        this.currentValue = undefined;
+        this.currentElseStyles = undefined;
+      } else {
+        // [flag, value, style, elseStyle?]
+        this.currentValue = second;
+        this.currentStyles = third as { [key: string]: any } | undefined;
+        this.currentElseStyles = fourth as { [key: string]: any } | undefined;
+      }
+      this.updateSubscription();
+      return;
+    }
+
+    // object config
+    if (flagKeyOrConfig && typeof flagKeyOrConfig === 'object') {
+      const cfg = flagKeyOrConfig as LdStyleIfConfig;
+      this.currentFlagKey = cfg.flag;
+      this.currentFallback = cfg.fallback;
+      this.currentValue = cfg.value;
+      this.currentStyles = cfg.style;
+      this.currentElseStyles = cfg.elseStyle;
+      this.updateSubscription();
+      return;
+    }
   }
 
   /**
    * The fallback value to use if the flag is not available or evaluation fails
    */
-  @Input() set ldStyleFallback(fallback: any) {
+  @Input('ldStyleIfFallback') set ldStyleIfFallback(fallback: any) {
     this.currentFallback = fallback;
     this.updateSubscription();
   }
@@ -81,7 +109,7 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
    * The specific value to check for. If provided, styles are applied only if flag equals this value.
    * If not provided, styles are applied if flag is truthy.
    */
-  @Input() set ldStyleValue(expectedValue: any) {
+  @Input('ldStyleIfValue') set ldStyleIfValue(expectedValue: any) {
     this.currentValue = expectedValue;
     this.updateSubscription();
   }
@@ -91,9 +119,9 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
    * Similar to ngStyle, accepts an object with CSS properties as keys.
    * 
    * @example
-   * [ldStyle]="{backgroundColor: '#007bff', color: 'white', fontSize: '16px'}"
+   * [ldStyleIfStyle]="{backgroundColor: '#007bff', color: 'white', fontSize: '16px'}"
    */
-  @Input() set ldStyle(styles: { [key: string]: any }) {
+  @Input('ldStyleIfStyle') set ldStyleIfStyle(styles: { [key: string]: any }) {
     this.currentStyles = styles;
     this.updateSubscription();
   }
@@ -103,9 +131,9 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
    * Similar to ngStyle, accepts an object with CSS properties as keys.
    * 
    * @example
-   * [ldStyleElse]="{backgroundColor: '#e9ecef', color: '#495057'}"
+   * [ldStyleIfElseStyle]="{backgroundColor: '#e9ecef', color: '#495057'}"
    */
-  @Input() set ldStyleElse(styles: { [key: string]: any }) {
+  @Input('ldStyleIfElseStyle') set ldStyleIfElseStyle(styles: { [key: string]: any }) {
     this.currentElseStyles = styles;
     this.updateSubscription();
   }
@@ -158,14 +186,14 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
     return Boolean(flagValue);
   }
 
-  private applyStyles(styles?: { [key: string]: any }) {
+  private applyStyles(styles?: LdStyles) {
     if (styles) {
       const processedStyles = this.processStyleObject(styles);
       Object.assign(this.elementRef.nativeElement.style, processedStyles);
     }
   }
 
-  private removeStyles(styles?: { [key: string]: any }) {
+  private removeStyles(styles?: LdStyles) {
     if (styles) {
       const processedStyles = this.processStyleObject(styles);
       Object.keys(processedStyles).forEach(property => {
@@ -192,7 +220,7 @@ export class LdStyleIfDirective implements OnInit, OnDestroy {
       
       if (unitMatch) {
         // Extract the property name and unit
-        const [, propertyName, unit] = unitMatch;
+        const [, propertyName, unit] = unitMatch as unknown as [string, string, string];
         // Convert camelCase to kebab-case for CSS properties
         const cssProperty = this.camelToKebabCase(propertyName);
         processed[cssProperty] = `${value}${unit}`;

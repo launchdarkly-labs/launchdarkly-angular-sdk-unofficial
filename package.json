@@ -1,31 +1,61 @@
 {
-  "name": "ld-demo",
-  "version": "0.0.2",
+  "name": "launchdarkly-angular",
+  "version": "0.1.0",
+  "description": "Angular library for LaunchDarkly feature flags with reactive directives and services",
+  "keywords": [
+    "angular",
+    "launchdarkly",
+    "feature-flags",
+    "feature-toggles",
+    "a-b-testing",
+    "experimentation"
+  ],
+  "author": "LaunchDarkly Professional Services",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/launchdarkly-labs/launchdarkly-angular.git"
+  },
+  "bugs": {
+    "url": "https://github.com/launchdarkly-labs/launchdarkly-angular/issues"
+  },
+  "homepage": "https://github.com/launchdarkly-labs/launchdarkly-angular#readme",
+  "type": "module",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build"
+    "build": "ng build launchdarkly-angular",
+    "build:prod": "ng build launchdarkly-angular --configuration=production",
+    "test": "ng test launchdarkly-angular",
+    "test:watch": "ng test launchdarkly-angular --watch",
+    "lint": "ng lint",
+    "demo:serve": "ng serve demo",
+    "demo:build": "ng build demo",
+    "demo:start": "npm run demo:serve",
+    "dev": "npm run demo:serve",
+    "start": "npm run demo:serve"
   },
-  "private": true,
+  "peerDependencies": {
+    "@angular/common": "^16.0.0 || ^17.0.0 || ^18.0.0",
+    "@angular/core": "^16.0.0 || ^17.0.0 || ^18.0.0",
+    "rxjs": "^7.0.0"
+  },
   "dependencies": {
-    "@angular/animations": "^16.2.0",
-    "@angular/common": "^16.2.0",
-    "@angular/compiler": "^16.2.0",
-    "@angular/core": "^16.2.0",
-    "@angular/forms": "^16.2.0",
-    "@angular/platform-browser": "^16.2.0",
-    "@angular/platform-browser-dynamic": "^16.2.0",
-    "@angular/router": "^16.2.0",
-    "fast-deep-equal": "^3.1.3",
     "launchdarkly-js-client-sdk": "^3.0.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.13.0"
+    "fast-deep-equal": "^3.1.3",
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^16.2.0",
     "@angular/cli": "^16.2.0",
+    "@angular/compiler": "^16.2.0",
     "@angular/compiler-cli": "^16.2.0",
+    "@angular/core": "^16.2.0",
+    "@angular/common": "^16.2.0",
+    "@angular/platform-browser": "^16.2.0",
+    "@angular/platform-browser-dynamic": "^16.2.0",
+    "@angular/router": "^16.2.0",
+    "@angular/forms": "^16.2.0",
+    "@angular/animations": "^16.2.0",
     "@types/jasmine": "^5.1.9",
     "@types/jasminewd2": "^2.0.13",
     "@types/node": "^24.5.2",
@@ -36,6 +66,9 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
     "ng-packagr": "^16.2.0",
-    "typescript": "~5.1.6"
-  }
+    "rxjs": "~7.8.0",
+    "typescript": "~5.1.6",
+    "zone.js": "~0.13.0"
+  },
+  "sideEffects": false
 }

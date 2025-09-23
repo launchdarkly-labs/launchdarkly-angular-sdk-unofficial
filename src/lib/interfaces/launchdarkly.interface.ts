@@ -40,11 +40,6 @@ export interface LDDirectiveConfig {
 }
 
 /**
- * Injection token for LaunchDarkly service configuration
- */
-export const LD_SERVICE_CONFIG = new InjectionToken<LDServiceConfig>('LD_SERVICE_CONFIG');
-
-/**
  * Default configuration values
  */
 export const DEFAULT_LD_CONFIG: Partial<LDServiceConfig> = {
@@ -53,3 +48,8 @@ export const DEFAULT_LD_CONFIG: Partial<LDServiceConfig> = {
   },
   timeout: 500
 };
+
+/**
+ * Injection token for LaunchDarkly service configuration
+ */
+export const LD_SERVICE_CONFIG = new InjectionToken<LDServiceConfig>('LD_SERVICE_CONFIG');

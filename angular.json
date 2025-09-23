@@ -1,50 +1,24 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
-  "defaultProject": "ld-demo",
   "projects": {
-    "ld-demo": {
-      "projectType": "application",
-      "root": "",
-      "sourceRoot": "src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:browser",
-          "options": {
-            "outputPath": "dist/ld-demo",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": ["zone.js"],
-            "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.css"],
-            "scripts": []
-          }
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "options": { "browserTarget": "ld-demo:build" }
-        }
-      }
-    },
     "launchdarkly-angular": {
       "projectType": "library",
-      "root": "launchdarkly-angular",
-      "sourceRoot": "launchdarkly-angular/src",
+      "root": "",
+      "sourceRoot": "src",
       "prefix": "ld",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "project": "launchdarkly-angular/ng-package.json"
+            "project": "ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "launchdarkly-angular/tsconfig.lib.prod.json"
+              "tsConfig": "tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "launchdarkly-angular/tsconfig.lib.json"
+              "tsConfig": "tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -52,12 +26,41 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "tsConfig": "launchdarkly-angular/tsconfig.spec.json",
+            "tsConfig": "tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
             ]
           }
+        }
+      }
+    },
+    "demo": {
+      "projectType": "application",
+      "root": "examples/demo",
+      "sourceRoot": "examples/demo/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/demo",
+            "index": "examples/demo/src/index.html",
+            "main": "examples/demo/src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "examples/demo/tsconfig.app.json",
+            "assets": ["examples/demo/src/favicon.ico", "examples/demo/src/assets"],
+            "styles": ["examples/demo/src/styles.css"],
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "launchdarkly-js-client-sdk",
+              "fast-deep-equal"
+            ]
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": { "browserTarget": "demo:build" }
         }
       }
     }

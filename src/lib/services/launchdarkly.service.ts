@@ -1,4 +1,4 @@
-import { Injectable, NgZone, Inject } from '@angular/core';
+import { Injectable, NgZone, Inject, Optional } from '@angular/core';
 import { BehaviorSubject, Observable, distinctUntilChanged, map, switchMap, filter, from, of, startWith, catchError, throwError, timeout, concatMap, take, Subject, MonoTypeOperatorFunction, timer, race, firstValueFrom } from 'rxjs';
 import {
   initialize,
@@ -9,7 +9,8 @@ import {
   type LDEvaluationDetail,
   LDFlagChangeset
 } from 'launchdarkly-js-client-sdk';
-import * as equal from 'fast-deep-equal';
+import equal from 'fast-deep-equal';
+
 import { LDServiceConfig, FlagChangeEvent, LD_SERVICE_CONFIG } from '../interfaces/launchdarkly.interface';
 
 /**
@@ -37,7 +38,9 @@ function when<T>(condition: boolean, operator: MonoTypeOperatorFunction<T>): Mon
  * }
  * ```
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class LaunchDarklyService {
   private clientSubject$ = new BehaviorSubject<LDClient | undefined>(undefined);
   private isInitializedSubject$ = new BehaviorSubject<boolean>(false);
@@ -48,7 +51,10 @@ export class LaunchDarklyService {
     @Inject(NgZone) private zone: NgZone,
     @Inject(LD_SERVICE_CONFIG) private config: LDServiceConfig
   ) {
+    console.log('LD ctor deps:', { zone: !!zone, configKeys: Object.keys(this.config || {}) });
+    console.log('LaunchDarklyService constructor called with config:', this.config);
     // Auto-initialize if context is provided
+    console.log("fast-deep-equal", equal);
     this._initialize(this.config.clientId, this.config.context, this.config.options);
   }
 
@@ -191,13 +197,10 @@ export class LaunchDarklyService {
    * 
    * @throws Will log an error if called after client is already initialized
    */
-  private _initialize(clientId: string, context: LDContext, options: LDOptions = {}): void {
+  private _initialize(clientId: string, context: LDContext, options?: LDOptions): void {
     // copy so we don't mutate the original options
-    console.log("[LaunchDarkly Service] initializing");
-    let clientOptions = { ...options };
-    if (!Object.prototype.hasOwnProperty.call(clientOptions, 'streaming')) {
-      clientOptions.streaming = true;
-    }
+    console.log("[LaunchDarkly Service] initializing", clientId, context, options);
+    const clientOptions: LDOptions = { streaming: true, ...(options ?? {}) } as LDOptions;
     if (this.clientSubject$.value) {
       console.error('[LaunchDarkly Service] initialize called after LD already initialized, skipping. please ensure this is only called once.');
       return;
