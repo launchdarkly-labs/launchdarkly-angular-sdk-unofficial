@@ -27,8 +27,7 @@
   "exports": {
     ".": {
       "import": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
-      "require": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
-      "types": "./dist/launchdarkly-angular/index.d.ts"
+      "require": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs"
     }
   },
   "files": [
@@ -37,8 +36,8 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "ng": "ng",
