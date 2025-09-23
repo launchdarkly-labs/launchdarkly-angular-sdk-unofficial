@@ -120,7 +120,7 @@ If a release needs to be rolled back:
 
 1. **Unpublish** the version from NPM (if within 24 hours):
    ```bash
-   npm unpublish launchdarkly-angular@<version>
+   npm unpublish @launchtarqly/launchdarkly-angular@<version>
    ```
 
 2. **Delete** the git tag:

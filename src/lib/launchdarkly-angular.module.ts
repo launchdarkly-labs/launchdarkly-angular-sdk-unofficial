@@ -24,7 +24,7 @@ import type { LDServiceConfig } from './interfaces/launchdarkly.interface';
  * @example
  * ```typescript
  * // In your app.module.ts
- * import { LaunchDarklyAngularModule } from 'launchdarkly-angular';
+ * import { LaunchDarklyAngularModule } from '@launchtarqly/launchdarkly-angular';
  * 
  * @NgModule({
  *   imports: [

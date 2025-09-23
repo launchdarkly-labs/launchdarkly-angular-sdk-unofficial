@@ -1,5 +1,5 @@
 {
-  "name": "launchdarkly-angular",
+  "name": "@launchtarqly/launchdarkly-angular",
   "version": "0.2.0",
   "description": "Angular library for LaunchDarkly feature flags with reactive directives and services",
   "keywords": [
@@ -21,20 +21,6 @@
   },
   "homepage": "https://github.com/launchdarkly-labs/launchdarkly-angular#readme",
   "type": "module",
-  "main": "dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
-  "module": "dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
-  "types": "dist/launchdarkly-angular/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs",
-      "require": "./dist/launchdarkly-angular/fesm2022/launchdarkly-angular.mjs"
-    }
-  },
-  "files": [
-    "dist/launchdarkly-angular",
-    "README.md",
-    "LICENSE"
-  ],
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
@@ -104,6 +90,5 @@
     "typescript": "~5.1.6",
     "typescript-eslint": "8.40.0",
     "zone.js": "~0.13.0"
-  },
-  "sideEffects": false
+  }
 }

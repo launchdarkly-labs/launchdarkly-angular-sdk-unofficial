@@ -19,7 +19,7 @@ A comprehensive Angular library for integrating LaunchDarkly feature flags with 
 ## Installation
 
 ```bash
-npm install launchdarkly-angular
+npm install @launchtarqly/launchdarkly-angular
 ```
 
 ## Quick Start
@@ -30,7 +30,7 @@ npm install launchdarkly-angular
 import { APP_INITIALIZER, NgModule, NgZone } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
-import { LaunchDarklyService, LD_SERVICE_CONFIG, LaunchDarklyAngularModule } from 'launchdarkly-angular';
+import { LaunchDarklyService, LD_SERVICE_CONFIG, LaunchDarklyAngularModule } from '@launchtarqly/launchdarkly-angular';
 
 import { environment } from '../environments/environment';
 
@@ -89,7 +89,7 @@ export class AppModule {}
 ### 3. Use Service in Components
 
 ```typescript
-import { LaunchDarklyService } from 'launchdarkly-angular';
+import { LaunchDarklyService } from '@launchtarqly/launchdarkly-angular';
 
 @Component({...})
 export class MyComponent {
@@ -329,7 +329,7 @@ For applications that need to wait for LaunchDarkly to be ready before starting:
 
 ```typescript
 import { APP_INITIALIZER } from '@angular/core';
-import { LaunchDarklyService } from 'launchdarkly-angular';
+import { LaunchDarklyService } from '@launchtarqly/launchdarkly-angular';
 
 @NgModule({
   providers: [
@@ -390,7 +390,7 @@ Check out the `examples/demo` directory for a complete working example of the li
 ### Unit Testing
 
 ```typescript
-import { LaunchDarklyService } from 'launchdarkly-angular';
+import { LaunchDarklyService } from '@launchtarqly/launchdarkly-angular';
 
 describe('MyComponent', () => {
   let mockLdService: jasmine.SpyObj<LaunchDarklyService>;
@@ -409,7 +409,7 @@ describe('MyComponent', () => {
 ### Integration Testing
 
 ```typescript
-import { LaunchDarklyAngularModule } from 'launchdarkly-angular';
+import { LaunchDarklyAngularModule } from '@launchtarqly/launchdarkly-angular';
 
 TestBed.configureTestingModule({
   imports: [

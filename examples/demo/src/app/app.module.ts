@@ -1,7 +1,7 @@
 import { APP_INITIALIZER, NgModule, NgZone } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
-import { LaunchDarklyService, LD_SERVICE_CONFIG, LaunchDarklyAngularModule } from 'launchdarkly-angular';
+import { LaunchDarklyService, LD_SERVICE_CONFIG, LaunchDarklyAngularModule } from '@launchtarqly/launchdarkly-angular';
 
 import { environment } from '../environments/environment';
 

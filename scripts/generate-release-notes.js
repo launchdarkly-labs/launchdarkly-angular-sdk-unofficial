@@ -85,7 +85,7 @@ export function generateReleaseNotes() {
     // Add installation instructions
     releaseNotes += `### 📦 Installation\n\n`;
     releaseNotes += `\`\`\`bash\n`;
-    releaseNotes += `npm install launchdarkly-angular@${currentVersion}\n`;
+    releaseNotes += `npm install @launchtarqly/launchdarkly-angular@${currentVersion}\n`;
     releaseNotes += `\`\`\`\n\n`;
     
     // Add changelog link

@@ -24,7 +24,7 @@
 ### 📦 Installation
 
 ```bash
-npm install launchdarkly-angular@0.1.0
+npm install @launchtarqly/launchdarkly-angular@0.1.0
 ```
 
 **Full Changelog**: https://github.com/launchdarkly-labs/launchdarkly-angular/compare/initial...v0.1.0

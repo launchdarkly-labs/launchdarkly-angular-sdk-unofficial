@@ -45,4 +45,4 @@ This is a demo application showcasing the LaunchDarkly Angular library with all 
 
 ## Development
 
-This demo uses the local `launchdarkly-angular` library from the parent directory, making it perfect for development and testing.
+This demo uses the local `@launchtarqly/launchdarkly-angular` library from the parent directory, making it perfect for development and testing.

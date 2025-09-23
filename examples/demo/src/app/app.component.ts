@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Observable, map, startWith, filter, switchMap, shareReplay } from 'rxjs';
-import { LaunchDarklyService } from 'launchdarkly-angular';
+import { LaunchDarklyService } from '@launchtarqly/launchdarkly-angular';
 
 @Component({
   selector: 'app-root',

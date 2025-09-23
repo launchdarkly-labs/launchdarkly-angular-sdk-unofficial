@@ -4,7 +4,7 @@
   "description": "Demo application for LaunchDarkly Angular library",
   "private": true,
   "scripts": {
-    "build:local": "rm launchdarkly-angular-*.tgz && (cd ../../ && npm run build) && npm pack ../../dist/launchdarkly-angular && npm install launchdarkly-angular-*.tgz && npm run build",
+    "build:dep": "(cd ../../ && npm run build && cd dist/launchdarkly-angular; FILE=$(npm pack); mv $FILE ../.././examples/demo/launchdarkly-angular.tgz) && npm install launchdarkly-angular.tgz",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
@@ -19,7 +19,7 @@
     "@angular/platform-browser": "^16.2.0",
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
-    "launchdarkly-angular": "file:../../launchdarkly-angular-0.1.0.tgz",
+    "@launchtarqly/launchdarkly-angular": "file:launchdarkly-angular.tgz",
     "launchdarkly-js-client-sdk": "^3.9.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
