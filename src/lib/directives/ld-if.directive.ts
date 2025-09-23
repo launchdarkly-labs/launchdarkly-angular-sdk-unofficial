@@ -1,6 +1,7 @@
-import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { LaunchDarklyService } from '../services/launchdarkly.service';
+import type { LDFlagValue } from 'launchdarkly-js-client-sdk';
 
 /**
  * Structural directive that conditionally renders content based on a LaunchDarkly feature flag.
@@ -101,17 +102,15 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 export class LdIfDirective implements OnInit, OnDestroy {
   private subscription?: Subscription;
   private currentFlagKey?: string;
-  private currentFallback?: any;
-  private currentValue?: any;
-  private elseTemplate?: TemplateRef<any>;
+  private currentFallback?: LDFlagValue;
+  private currentValue?: LDFlagValue;
+  private elseTemplate?: TemplateRef<unknown>;
   private instanceId = Math.random().toString(36).substr(2, 9);
 
-  constructor(
-    private templateRef: TemplateRef<any>,
-    private viewContainer: ViewContainerRef,
-    private ldService: LaunchDarklyService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private templateRef = inject(TemplateRef<unknown>);
+  private viewContainer = inject(ViewContainerRef);
+  private ldService = inject(LaunchDarklyService);
+  private cdr = inject(ChangeDetectorRef);
 
   /**
    * The feature flag key to evaluate
@@ -124,7 +123,7 @@ export class LdIfDirective implements OnInit, OnDestroy {
   /**
    * The fallback value to use if the flag is not available or evaluation fails
    */
-  @Input() set ldIfFallback(fallback: any) {
+  @Input() set ldIfFallback(fallback: LDFlagValue) {
     this.currentFallback = fallback;
     this.updateSubscription();
   }
@@ -133,7 +132,7 @@ export class LdIfDirective implements OnInit, OnDestroy {
    * The specific value to check for. If provided, content is shown only if flag equals this value.
    * If not provided, content is shown if flag is truthy.
    */
-  @Input() set ldIfValue(value: any) {
+  @Input() set ldIfValue(value: LDFlagValue) {
     this.currentValue = value;
     this.updateSubscription();
   }
@@ -141,7 +140,7 @@ export class LdIfDirective implements OnInit, OnDestroy {
   /**
    * Template to show when the condition is false
    */
-  @Input() set ldIfElse(template: TemplateRef<any>) {
+  @Input() set ldIfElse(template: TemplateRef<unknown>) {
     this.elseTemplate = template;
     this.updateSubscription();
   }
@@ -181,7 +180,7 @@ export class LdIfDirective implements OnInit, OnDestroy {
    * @param flagValue - The current value of the LaunchDarkly flag
    * @returns true if the content should be shown, false otherwise
    */
-  private shouldShowContent(flagValue: any): boolean {
+  private shouldShowContent(flagValue: LDFlagValue): boolean {
     // If a specific value is provided, check for exact match
     if (this.currentValue !== undefined) {
       return flagValue === this.currentValue;

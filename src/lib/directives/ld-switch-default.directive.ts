@@ -1,4 +1,4 @@
-import { Directive, TemplateRef, ViewContainerRef, OnInit, OnDestroy } from '@angular/core';
+import { Directive, TemplateRef, ViewContainerRef, OnInit, OnDestroy, inject } from '@angular/core';
 import { LdSwitchDirective } from './ld-switch.directive';
 
 /**
@@ -206,13 +206,11 @@ import { LdSwitchDirective } from './ld-switch.directive';
   selector: '[ldSwitchDefault]'
 })
 export class LdSwitchDefaultDirective implements OnInit, OnDestroy {
-  private view?: any;
+  private view?: unknown;
 
-  constructor(
-    private templateRef: TemplateRef<any>,
-    private viewContainer: ViewContainerRef,
-    private ldSwitch: LdSwitchDirective
-  ) {}
+  private templateRef = inject(TemplateRef<unknown>);
+  private viewContainer = inject(ViewContainerRef);
+  private ldSwitch = inject(LdSwitchDirective);
 
   /**
    * Registers this default case with the parent LdSwitchDirective

@@ -1,6 +1,12 @@
-import { Directive, Input, OnInit, OnDestroy } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Directive, Input, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { LaunchDarklyService } from '../services/launchdarkly.service';
+import type { LDFlagValue } from 'launchdarkly-js-client-sdk';
+
+interface LdCaseDirective {
+  show(): void;
+  hide(): void;
+}
 
 /**
  * Container directive for LaunchDarkly feature flags with multiple cases.
@@ -209,12 +215,12 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 export class LdSwitchDirective implements OnInit, OnDestroy {
   private subscription?: Subscription;
   private currentFlagKey?: string;
-  private currentFallback?: any;
-  private cases = new Map<any, any>();
-  private defaultCase?: any;
-  private currentFlagValue?: any;
+  private currentFallback?: LDFlagValue;
+  private cases = new Map<LDFlagValue, LdCaseDirective>();
+  private defaultCase?: LdCaseDirective;
+  private currentFlagValue?: LDFlagValue;
 
-  constructor(private ldService: LaunchDarklyService) {}
+  private ldService = inject(LaunchDarklyService);
 
   /**
    * The feature flag key to evaluate
@@ -227,7 +233,7 @@ export class LdSwitchDirective implements OnInit, OnDestroy {
   /**
    * The fallback value to use if the flag is not available or evaluation fails
    */
-  @Input() set ldSwitchFallback(fallback: any) {
+  @Input() set ldSwitchFallback(fallback: LDFlagValue) {
     this.currentFallback = fallback;
     this.updateSubscription();
   }
@@ -247,7 +253,7 @@ export class LdSwitchDirective implements OnInit, OnDestroy {
    * @param value - The value that this case should match
    * @param caseDirective - The LdSwitchCaseDirective instance
    */
-  registerCase(value: any, caseDirective: any) {
+  registerCase(value: LDFlagValue, caseDirective: LdCaseDirective) {
     this.cases.set(value, caseDirective);
     this.updateCases();
   }
@@ -258,7 +264,7 @@ export class LdSwitchDirective implements OnInit, OnDestroy {
    * 
    * @param value - The value of the case to unregister
    */
-  unregisterCase(value: any) {
+  unregisterCase(value: LDFlagValue) {
     this.cases.delete(value);
     this.updateCases();
   }
@@ -269,7 +275,7 @@ export class LdSwitchDirective implements OnInit, OnDestroy {
    * 
    * @param defaultDirective - The LdSwitchDefaultDirective instance
    */
-  registerDefault(defaultDirective: any) {
+  registerDefault(defaultDirective: LdCaseDirective) {
     this.defaultCase = defaultDirective;
     this.updateCases();
   }

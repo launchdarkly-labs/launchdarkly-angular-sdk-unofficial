@@ -1,6 +1,7 @@
-import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { LaunchDarklyService } from '../services/launchdarkly.service';
+import type { LDFlagValue } from 'launchdarkly-js-client-sdk';
 
 /**
  * Universal structural directive for LaunchDarkly feature flags.
@@ -33,11 +34,6 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * - **Default**: `undefined`
  * - **Example**: `#premiumUnavailable`
  * 
- * ### ldFlagLoading (optional)
- * - **Type**: `TemplateRef<any>`
- * - **Description**: Template to show while the flag is loading
- * - **Default**: `undefined`
- * - **Example**: `#loadingTemplate`
  * 
  * ## Template Context Variables
  * 
@@ -107,22 +103,6 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * </ng-template>
  * ```
  * 
- * ### Using Context Variables
- * ```html
- * <ng-template [ldFlag]="'user-data'" [ldFlagFallback]="null" let-userData let-isEmpty="isEmpty" let-isTruthy="isTruthy">
- *   <div class="user-info">
- *     <div *ngIf="!isEmpty && isTruthy">
- *       <h3>Welcome, {{ userData.name }}!</h3>
- *       <p>Email: {{ userData.email }}</p>
- *       <p>Plan: {{ userData.plan }}</p>
- *     </div>
- *     <div *ngIf="isEmpty" class="no-data">
- *       <p>No user data available</p>
- *     </div>
- *   </div>
- * </ng-template>
- * ```
- * 
  * ### Array Flag with Iteration
  * ```html
  * <ng-template [ldFlag]="'feature-list'" [ldFlagFallback]="[]" let-features>
@@ -140,11 +120,7 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * ## Best Practices
  * 
  * 1. **Always provide a fallback**: Use `ldFlagFallback` to ensure your app works when LaunchDarkly is unavailable
- * 2. **Use template context variables**: Leverage the injected variables (`flagValue`, `isEmpty`, `isTruthy`) for better template logic
- * 3. **Handle different data types**: Ensure your templates work with various flag types (boolean, string, number, object, array)
- * 4. **Provide else templates**: Use `ldFlagElse` to show alternative content when conditions aren't met
- * 5. **Use loading templates**: Provide `ldFlagLoading` for better user experience during flag loading
- * 6. **Test with different flag values**: Ensure your templates work with various flag types and edge cases
+ * 2. **Use template context variables**: Leverage the injected variables (`flagValue`, `isMatch`) for better template logic
  */
 @Directive({
   selector: '[ldFlag]'
@@ -152,18 +128,15 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 export class LdFlagDirective implements OnInit, OnDestroy {
   private subscription?: Subscription;
   private currentFlagKey?: string;
-  private currentFallback?: any;
-  private currentValue?: any;
-  private elseTemplate?: TemplateRef<any>;
-  private loadingTemplate?: TemplateRef<any>;
+  private currentFallback?: LDFlagValue;
+  private currentValue?: LDFlagValue;
+  private elseTemplate?: TemplateRef<unknown>;
   private instanceId = Math.random().toString(36).substr(2, 9);
 
-  constructor(
-    private templateRef: TemplateRef<any>,
-    private viewContainer: ViewContainerRef,
-    private ldService: LaunchDarklyService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private templateRef = inject(TemplateRef<unknown>);
+  private viewContainer = inject(ViewContainerRef);
+  private ldService = inject(LaunchDarklyService);
+  private cdr = inject(ChangeDetectorRef);
 
   /**
    * The feature flag key to evaluate
@@ -176,7 +149,7 @@ export class LdFlagDirective implements OnInit, OnDestroy {
   /**
    * The fallback value to use if the flag is not available or evaluation fails
    */
-  @Input() set ldFlagFallback(fallback: any) {
+  @Input() set ldFlagFallback(fallback: LDFlagValue) {
     this.currentFallback = fallback;
     this.updateSubscription();
   }
@@ -185,7 +158,7 @@ export class LdFlagDirective implements OnInit, OnDestroy {
    * The specific value to check for. If provided, content is shown only if flag equals this value.
    * If not provided, the flag value itself is injected into the template context.
    */
-  @Input() set ldFlagValue(expectedValue: any) {
+  @Input() set ldFlagValue(expectedValue: LDFlagValue) {
     this.currentValue = expectedValue;
     this.updateSubscription();
   }
@@ -193,18 +166,11 @@ export class LdFlagDirective implements OnInit, OnDestroy {
   /**
    * Template to show when the condition is false (only used when 'ldFlagValue' is specified)
    */
-  @Input() set ldFlagElse(template: TemplateRef<any>) {
+  @Input() set ldFlagElse(template: TemplateRef<unknown>) {
     this.elseTemplate = template;
     this.updateSubscription();
   }
 
-  /**
-   * Template to show while the flag is loading
-   */
-  @Input() set ldFlagLoading(template: TemplateRef<any>) {
-    this.loadingTemplate = template;
-    this.updateSubscription();
-  }
 
   ngOnInit() {
     this.updateSubscription();
@@ -240,7 +206,7 @@ export class LdFlagDirective implements OnInit, OnDestroy {
    * 
    * @param flagValue - The current value of the LaunchDarkly flag
    */
-  private updateView(flagValue: any) {
+  private updateView(flagValue: LDFlagValue) {
     // Clear existing views
     this.viewContainer.clear();
 
@@ -279,15 +245,4 @@ export class LdFlagDirective implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  /**
-   * Checks if a value is considered empty.
-   * 
-   * @param value - The value to check
-   * @returns true if the value is empty, false otherwise
-   */
-  private isEmpty(value: any): boolean {
-    return value === null || value === undefined || value === '' || 
-           (Array.isArray(value) && value.length === 0) ||
-           (typeof value === 'object' && Object.keys(value).length === 0);
-  }
 }

@@ -1,5 +1,5 @@
-import { Injectable, NgZone, Inject } from '@angular/core';
-import { BehaviorSubject, Observable, distinctUntilChanged, map, switchMap, filter, from, of, startWith, catchError, throwError, timeout, concatMap, take, Subject, MonoTypeOperatorFunction, timer, race, firstValueFrom } from 'rxjs';
+import { Injectable, NgZone, inject } from '@angular/core';
+import { BehaviorSubject, Observable, distinctUntilChanged, map, switchMap, filter, startWith, catchError, concatMap, take, Subject, timer, race, firstValueFrom } from 'rxjs';
 import {
   initialize,
   type LDClient,
@@ -11,13 +11,7 @@ import {
 } from 'launchdarkly-js-client-sdk';
 import equal from 'fast-deep-equal';
 
-import { LDServiceConfig, FlagChangeEvent, LD_SERVICE_CONFIG } from '../interfaces/launchdarkly.interface';
-/**
- * Utility operator for conditional application
- */
-function when<T>(condition: boolean, operator: MonoTypeOperatorFunction<T>): MonoTypeOperatorFunction<T> {
-  return condition ? operator : (source: Observable<T>) => source;
-}
+import { FlagChangeEvent, LD_SERVICE_CONFIG, LDServiceConfig } from '../interfaces/launchdarkly.interface';
 
 /**
  * LaunchDarkly service for Angular applications.
@@ -46,10 +40,10 @@ export class LaunchDarklyService {
   private goalsReadySubject$ = new BehaviorSubject<boolean>(false);
   private flagChangesSubject$ = new Subject<FlagChangeEvent>();
 
-  constructor(
-    @Inject(NgZone) private zone: NgZone,
-    @Inject(LD_SERVICE_CONFIG) private config: LDServiceConfig
-  ) {
+  private zone = inject(NgZone);
+  private config : LDServiceConfig = inject(LD_SERVICE_CONFIG);
+
+  constructor() {
     this._initialize(this.config.clientId, this.config.context, this.config.options);
   }
 
@@ -73,7 +67,7 @@ export class LaunchDarklyService {
    * ]
    * ```
    */
-  static createAppInitializer(timeoutMs: number = 500) {
+  static createAppInitializer(timeoutMs = 500) {
     return (ldService: LaunchDarklyService): () => Promise<boolean> => {
       return () => firstValueFrom(ldService.waitUntilReady$(timeoutMs));
     };
@@ -132,7 +126,7 @@ export class LaunchDarklyService {
    */
   waitUntilReady$(timeoutMs: number): Observable<boolean> {
     return this.waitForInitialization$(timeoutMs).pipe(
-      catchError((error: any) => {
+      catchError(() => {
         return this.isInitializedSubject$.asObservable().pipe(
           startWith(false)
         );
@@ -197,7 +191,7 @@ export class LaunchDarklyService {
   }
 
   /**
-   * Private method that initializes the LaunchDarkly client with the provided configuration.
+   * Protected method that initializes the LaunchDarkly client with the provided configuration.
    * Sets up event listeners for flag changes, initialization, and goals ready events.
    * 
    * @param clientId - LaunchDarkly client-side ID
@@ -206,7 +200,7 @@ export class LaunchDarklyService {
    * 
    * @throws Will log an error if called after client is already initialized
    */
-  private _initialize(clientId: string, context: LDContext, options?: LDOptions): void {
+  protected _initialize(clientId: string, context: LDContext, options?: LDOptions): void {
     // copy so we don't mutate the original options
     const clientOptions: LDOptions = { streaming: true, ...(options ?? {}) } as LDOptions;
     if (this.clientSubject$.value) {
@@ -215,6 +209,9 @@ export class LaunchDarklyService {
     }
 
     const client = initialize(clientId, context, clientOptions);
+    this._setClient(client);
+  }
+  protected _setClient(client: LDClient): void {
     this.clientSubject$.next(client);
     // Set up global flag change listener
     client.on('change', (settings: LDFlagChangeset) => {
@@ -396,10 +393,10 @@ export class LaunchDarklyService {
    * this.ldService.track('page-view', { page: '/dashboard' }, 1);
    * ```
    */
-  track(key: string, data?: any, metricValue?: number): void {
+  track(key: string, data?: unknown, metricValue?: number): void {
     this.getClient().then((client) => {
       client.track(key, data, metricValue);
-    }).catch((error: any) => {
+    }).catch((error) => {
       // this should never happen
       console.error('[LaunchDarkly Service] Unexpected rejection when tracking event:', error);
     });

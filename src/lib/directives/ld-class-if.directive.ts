@@ -1,6 +1,7 @@
-import { Directive, Input, ElementRef, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Directive, Input, ElementRef, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { LaunchDarklyService } from '../services/launchdarkly.service';
+import type { LDFlagValue } from 'launchdarkly-js-client-sdk';
 
 /**
  * Directive for conditionally applying CSS classes based on LaunchDarkly feature flags.
@@ -9,12 +10,10 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * ## Parameters
  * 
  * ### ldClassIf (required)
- * - **Type**: `string | [any, ...any[]] | LdClassIfConfig`
- * - **Description**: The LaunchDarkly flag key, tuple, or configuration object
+ * - **Type**: `string | LdClassIfConfig`
+ * - **Description**: The LaunchDarkly flag key or configuration object
  * - **Examples**: 
  *   - `'premium-features'` (string)
- *   - `['premium-features', 'premium-user']` (tuple)
- *   - `['user-tier', 'premium', 'premium-user', 'basic-user']` (tuple with else class)
  *   - `{ flag: 'theme', value: 'dark', class: 'dark-theme active' }` (object)
  * 
  * ### ldClassIfFallback (optional)
@@ -102,18 +101,6 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * </div>
  * ```
  * 
- * ### Tuple Syntax (Shorthand)
- * ```html
- * <!-- String tuple: [flag, class] -->
- * <div [ldClassIf]="['premium-features', 'premium-user']">
- *   User content
- * </div>
- * 
- * <!-- Tuple with else class: [flag, value, class, elseClass] -->
- * <div [ldClassIf]="['user-tier', 'premium', 'premium-user', 'basic-user']">
- *   User content
- * </div>
- * ```
  * 
  * ### Object Configuration
  * ```html
@@ -212,9 +199,9 @@ interface LdClassIfConfig {
   /** CSS class(es) to apply when the condition is not met. Can be a string or array of strings */
   elseClass?: string | string[];
   /** Specific value to check for. If provided, class is applied only if flag equals this value */
-  value?: any;
+  value?: LDFlagValue;
   /** Fallback value to use if the flag is not available or evaluation fails */
-  fallback?: any;
+  fallback?: LDFlagValue;
 }
 @Directive({
   selector: '[ldClassIf]'
@@ -222,46 +209,25 @@ interface LdClassIfConfig {
 export class LdClassIfDirective implements OnInit, OnDestroy {
   private subscription?: Subscription;
   private currentFlagKey?: string;
-  private currentFallback?: any;
-  private currentValue?: any;
+  private currentFallback?: LDFlagValue;
+  private currentValue?: LDFlagValue;
   private currentClass?: string;
   private currentElseClass?: string;
   private instanceId = Math.random().toString(36).substr(2, 9);
 
-  constructor(
-    private elementRef: ElementRef,
-    private ldService: LaunchDarklyService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private elementRef = inject(ElementRef);
+  private ldService = inject(LaunchDarklyService);
+  private cdr = inject(ChangeDetectorRef);
 
   /**
    * Primary input. Supports:
    * - string: flag key
-   * - tuple: [flag, class] or [flag, value, class, elseClass?]
    * - object: { flag, class?, elseClass?, value?, fallback? }
    */
-  @Input() set ldClassIf(flagKeyOrConfig: string | [any, ...any[]] | LdClassIfConfig) {
+  @Input() set ldClassIf(flagKeyOrConfig: string | LdClassIfConfig) {
     // string => just the flag key
     if (typeof flagKeyOrConfig === 'string') {
       this.currentFlagKey = flagKeyOrConfig;
-      this.updateSubscription();
-      return;
-    }
-
-    // array shorthand
-    if (Array.isArray(flagKeyOrConfig)) {
-      const [flag, second, third, fourth] = flagKeyOrConfig;
-      this.currentFlagKey = flag;
-      if (typeof second === 'string' && third === undefined) {
-        // [flag, class]
-        this.currentClass = second;
-        this.currentValue = undefined;
-      } else {
-        // [flag, value, class, elseClass?]
-        this.currentValue = second;
-        this.currentClass = third as string | undefined;
-        this.currentElseClass = fourth as string | undefined;
-      }
       this.updateSubscription();
       return;
     }
@@ -282,7 +248,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
   /**
    * The fallback value to use if the flag is not available or evaluation fails
    */
-  @Input('ldClassIfFallback') set ldClassIfFallback(fallback: any) {
+  @Input() set ldClassIfFallback(fallback: LDFlagValue) {
     this.currentFallback = fallback;
     this.updateSubscription();
   }
@@ -291,7 +257,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * The specific value to check for. If provided, class is applied only if flag equals this value.
    * If not provided, class is applied if flag is truthy.
    */
-  @Input('ldClassIfValue') set ldClassIfValue(expectedValue: any) {
+  @Input() set ldClassIfValue(expectedValue: LDFlagValue) {
     this.currentValue = expectedValue;
     this.updateSubscription();
   }
@@ -300,7 +266,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * The CSS class(es) to apply when the condition is met.
    * Can be a single class name or multiple classes separated by spaces.
    */
-  @Input('ldClassIfClass') set ldClassIfClass(className: string) {
+  @Input() set ldClassIfClass(className: string) {
     this.currentClass = className;
     this.updateSubscription();
   }
@@ -309,7 +275,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * The CSS class(es) to apply when the condition is not met.
    * Can be a single class name or multiple classes separated by spaces.
    */
-  @Input('ldClassIfElseClass') set ldClassIfElseClass(className: string) {
+  @Input() set ldClassIfElseClass(className: string) {
     this.currentElseClass = className;
     this.updateSubscription();
   }
@@ -348,7 +314,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * 
    * @param flagValue - The current value of the LaunchDarkly flag
    */
-  private updateClass(flagValue: any) {
+  private updateClass(flagValue: LDFlagValue) {
     const shouldApplyClass = this.shouldApplyClass(flagValue);
     
     if (shouldApplyClass) {
@@ -368,7 +334,7 @@ export class LdClassIfDirective implements OnInit, OnDestroy {
    * @param flagValue - The current value of the LaunchDarkly flag
    * @returns true if the class should be applied, false otherwise
    */
-  private shouldApplyClass(flagValue: any): boolean {
+  private shouldApplyClass(flagValue: LDFlagValue): boolean {
     // If a specific value is provided, check for exact match
     if (this.currentValue !== undefined) {
       return flagValue === this.currentValue;

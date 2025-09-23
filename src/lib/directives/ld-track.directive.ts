@@ -1,4 +1,4 @@
-import { Directive, Input, HostListener, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Directive, Input, ElementRef, Renderer2, OnInit, OnDestroy, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { LaunchDarklyService } from '../services/launchdarkly.service';
 
 /**
@@ -32,7 +32,8 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * 
  * ## Supported Events
  * 
- * The directive supports the following DOM events:
+ * The directive supports any DOM event that can be listened to on the target element.
+ * Common events include:
  * - `'click'` - When element is clicked
  * - `'mouseenter'` - When user hovers over element
  * - `'mouseleave'` - When user stops hovering
@@ -40,7 +41,13 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * - `'blur'` - When element loses focus
  * - `'keydown'` - When user presses a key
  * - `'submit'` - When form is submitted
- * - `'custom-event'` - For custom events
+ * - `'play'` - When video/audio starts playing
+ * - `'pause'` - When video/audio is paused
+ * - `'load'` - When element finishes loading
+ * - `'error'` - When element encounters an error
+ * - `'scroll'` - When element is scrolled
+ * - `'resize'` - When element is resized
+ * - Any other valid DOM event name
  * 
  * ## Usage Examples
  * 
@@ -190,6 +197,25 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
  * </div>
  * ```
  * 
+ * ### Media Event Tracking
+ * ```html
+ * <!-- Track video play events -->
+ * <video [ldTrack]="'video-played'" 
+ *        [ldTrackEvent]="'play'" 
+ *        [ldTrackData]="{videoId: 'intro-video', duration: 120}"
+ *        controls>
+ *   <source src="intro.mp4" type="video/mp4">
+ * </video>
+ * 
+ * <!-- Track audio pause events -->
+ * <audio [ldTrack]="'audio-paused'" 
+ *        [ldTrackEvent]="'pause'" 
+ *        [ldTrackData]="{trackId: 'background-music'}"
+ *        controls>
+ *   <source src="music.mp3" type="audio/mpeg">
+ * </audio>
+ * ```
+ * 
  * ### Custom Event Tracking
  * ```html
  * <!-- Track custom events -->
@@ -205,16 +231,16 @@ import { LaunchDarklyService } from '../services/launchdarkly.service';
 @Directive({
   selector: '[ldTrack]'
 })
-export class LdTrackDirective implements OnInit, OnDestroy {
+export class LdTrackDirective implements OnInit, OnDestroy, OnChanges {
   private _eventKey?: string;
-  private _eventData?: any;
+  private _eventData?: unknown;
   private _metricValue?: number;
-  private _eventType: string = 'click';
+  private _eventType = 'click';
+  private _eventListener?: () => void;
 
-  constructor(
-    private elementRef: ElementRef,
-    private ldService: LaunchDarklyService
-  ) {}
+  private elementRef = inject(ElementRef);
+  private renderer = inject(Renderer2);
+  private ldService = inject(LaunchDarklyService);
 
   /**
    * The event key/name to track
@@ -226,7 +252,7 @@ export class LdTrackDirective implements OnInit, OnDestroy {
   /**
    * Custom data to associate with the event
    */
-  @Input() set ldTrackData(data: any) {
+  @Input() set ldTrackData(data: unknown) {
     this._eventData = data;
   }
 
@@ -241,7 +267,10 @@ export class LdTrackDirective implements OnInit, OnDestroy {
    * The DOM event to listen for (default: 'click')
    */
   @Input() set ldTrackEvent(event: string) {
-    this._eventType = event;
+    if (this._eventType !== event) {
+      this._eventType = event;
+      this.updateEventListener();
+    }
   }
 
   ngOnInit() {
@@ -249,99 +278,52 @@ export class LdTrackDirective implements OnInit, OnDestroy {
     if (!this._eventKey) {
       console.warn('[LdTrackDirective] No event key provided. Use [ldTrack]="event-name"');
     }
+    this.updateEventListener();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['ldTrackEvent'] || changes['ldTrack']) {
+      this.updateEventListener();
+    }
   }
 
   ngOnDestroy() {
-    // Cleanup handled by Angular's HostListener
+    this.removeEventListener();
   }
 
+
   /**
-   * Default click handler - tracks the event when element is clicked
+   * Updates the event listener based on the current event type.
+   * Removes any existing listener and adds a new one if an event key is provided.
    */
-  @HostListener('click', ['$event'])
-  onClick(event: Event) {
-    if (this._eventType === 'click') {
-      this.trackEvent(event);
+  private updateEventListener() {
+    this.removeEventListener();
+    
+    if (this._eventKey) {
+      this._eventListener = this.renderer.listen(
+        this.elementRef.nativeElement,
+        this._eventType,
+        () => this.trackEvent()
+      );
     }
   }
 
   /**
-   * Mouse enter handler - tracks when user hovers over element
+   * Removes the current event listener if one exists.
    */
-  @HostListener('mouseenter', ['$event'])
-  onMouseEnter(event: Event) {
-    if (this._eventType === 'mouseenter') {
-      this.trackEvent(event);
+  private removeEventListener() {
+    if (this._eventListener) {
+      this._eventListener();
+      this._eventListener = undefined;
     }
   }
 
-  /**
-   * Mouse leave handler - tracks when user stops hovering
-   */
-  @HostListener('mouseleave', ['$event'])
-  onMouseLeave(event: Event) {
-    if (this._eventType === 'mouseleave') {
-      this.trackEvent(event);
-    }
-  }
-
-  /**
-   * Focus handler - tracks when element receives focus
-   */
-  @HostListener('focus', ['$event'])
-  onFocus(event: Event) {
-    if (this._eventType === 'focus') {
-      this.trackEvent(event);
-    }
-  }
-
-  /**
-   * Blur handler - tracks when element loses focus
-   */
-  @HostListener('blur', ['$event'])
-  onBlur(event: Event) {
-    if (this._eventType === 'blur') {
-      this.trackEvent(event);
-    }
-  }
-
-  /**
-   * Keydown handler - tracks when user presses a key
-   */
-  @HostListener('keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    if (this._eventType === 'keydown') {
-      this.trackEvent(event);
-    }
-  }
-
-  /**
-   * Submit handler - tracks form submissions
-   */
-  @HostListener('submit', ['$event'])
-  onSubmit(event: Event) {
-    if (this._eventType === 'submit') {
-      this.trackEvent(event);
-    }
-  }
-
-  /**
-   * Generic event handler that can be used for custom events
-   */
-  @HostListener('document:custom-event', ['$event'])
-  onCustomEvent(event: CustomEvent) {
-    if (this._eventType === 'custom-event') {
-      this.trackEvent(event);
-    }
-  }
 
   /**
    * Internal method that handles the actual event tracking.
    * Enhances the provided data with element information and tracks the event via LaunchDarkly.
-   * 
-   * @param event - The DOM event that triggered the tracking
    */
-  private trackEvent(event: Event) {
+  private trackEvent() {
     if (!this._eventKey) {
       console.warn('[LdTrackDirective] Cannot track event: no event key provided');
       return;
@@ -349,7 +331,7 @@ export class LdTrackDirective implements OnInit, OnDestroy {
 
     // Enhance the data with element information
     const enhancedData = {
-      ...this._eventData,
+      ...(this._eventData as Record<string, unknown>),
       element: {
         tagName: this.elementRef.nativeElement.tagName.toLowerCase(),
         id: this.elementRef.nativeElement.id,
@@ -359,8 +341,7 @@ export class LdTrackDirective implements OnInit, OnDestroy {
     };
 
     // Track the event
-    this.ldService.track(this._eventKey, enhancedData, this._metricValue);
+    this.ldService.track(this._eventKey!, enhancedData, this._metricValue);
     
-    console.log(`[LdTrackDirective] Tracked event: ${this._eventKey}`, enhancedData);
   }
 }

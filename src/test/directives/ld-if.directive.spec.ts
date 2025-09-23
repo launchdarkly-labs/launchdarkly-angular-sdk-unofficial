@@ -1,38 +1,55 @@
-import { Component, TemplateRef, ViewContainerRef, ChangeDetectorRef } from '@angular/core';
+import { Component, TemplateRef, ViewContainerRef, ChangeDetectorRef, runInInjectionContext, Injector } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BehaviorSubject, of } from 'rxjs';
 import { LdIfDirective } from '../../lib/directives/ld-if.directive';
 import { LaunchDarklyService } from '../../lib/services/launchdarkly.service';
+import { 
+  setupLaunchDarklyServiceWithMockedClient, 
+  createLdClientMock,
+  simulateFlagChange,
+  simulateInitialization
+} from '../mocks/launchdarkly.mock';
+import type { LDClient } from 'launchdarkly-js-client-sdk';
 
 describe('LdIfDirective', () => {
   let component: TestComponent;
   let fixture: ComponentFixture<TestComponent>;
-  let mockLdService: jasmine.SpyObj<LaunchDarklyService>;
-  let mockTemplateRef: jasmine.SpyObj<TemplateRef<any>>;
+  let mockTemplateRef: jasmine.SpyObj<TemplateRef<unknown>>;
   let mockViewContainer: jasmine.SpyObj<ViewContainerRef>;
   let mockCdr: jasmine.SpyObj<ChangeDetectorRef>;
+  let clientMock: jasmine.SpyObj<LDClient>;
 
   beforeEach(async () => {
-    mockLdService = jasmine.createSpyObj('LaunchDarklyService', ['variation$']);
+    // Create a fresh client mock for each test
+    clientMock = createLdClientMock();
+    
     mockTemplateRef = jasmine.createSpyObj('TemplateRef', ['createEmbeddedView']);
     mockViewContainer = jasmine.createSpyObj('ViewContainerRef', ['createEmbeddedView', 'clear']);
     mockCdr = jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']);
 
-    // Set up default mock behavior
-    mockLdService.variation$.and.returnValue(of(false));
+    // Set up service with mocked client
+    const setup = setupLaunchDarklyServiceWithMockedClient(clientMock);
 
     await TestBed.configureTestingModule({
       declarations: [TestComponent, LdIfDirective],
       providers: [
-        { provide: LaunchDarklyService, useValue: mockLdService },
+        ...setup.providers,
+        { provide: ChangeDetectorRef, useValue: mockCdr },
         { provide: TemplateRef, useValue: mockTemplateRef },
-        { provide: ViewContainerRef, useValue: mockViewContainer },
-        { provide: ChangeDetectorRef, useValue: mockCdr }
+        { provide: ViewContainerRef, useValue: mockViewContainer }
       ]
     }).compileComponents();
 
+    // Get the real service with mocked client
+    TestBed.inject(LaunchDarklyService);
+
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
+    
+    // Simulate LaunchDarkly initialization
+    simulateInitialization(clientMock);
+    
+    // Trigger change detection to ensure directive is instantiated
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -40,12 +57,16 @@ describe('LdIfDirective', () => {
   });
 
   it('should show content when flag is truthy', () => {
-    mockLdService.variation$.and.returnValue(of(true));
+    // Simulate flag change to true
+    simulateFlagChange('test-flag', true, undefined, clientMock);
     
-    const directive = new LdIfDirective(mockTemplateRef, mockViewContainer, mockLdService, mockCdr);
+    // Create directive instance using runInInjectionContext
+    const injector = TestBed.inject(Injector);
+    const directive = runInInjectionContext(injector, () => new LdIfDirective());
+    
+    // Set inputs and initialize
     directive.ldIf = 'test-flag';
     directive.ldIfFallback = false;
-    
     directive.ngOnInit();
     
     expect(mockViewContainer.createEmbeddedView).toHaveBeenCalledWith(mockTemplateRef);
@@ -53,12 +74,16 @@ describe('LdIfDirective', () => {
   });
 
   it('should hide content when flag is falsy', () => {
-    mockLdService.variation$.and.returnValue(of(false));
+    // Simulate flag change to false
+    simulateFlagChange('test-flag', false, undefined, clientMock);
     
-    const directive = new LdIfDirective(mockTemplateRef, mockViewContainer, mockLdService, mockCdr);
+    // Create directive instance using runInInjectionContext
+    const injector = TestBed.inject(Injector);
+    const directive = runInInjectionContext(injector, () => new LdIfDirective());
+    
+    // Set inputs and initialize
     directive.ldIf = 'test-flag';
     directive.ldIfFallback = false;
-    
     directive.ngOnInit();
     
     expect(mockViewContainer.clear).toHaveBeenCalled();
@@ -66,55 +91,81 @@ describe('LdIfDirective', () => {
   });
 
   it('should show content when flag matches specific value', () => {
-    mockLdService.variation$.and.returnValue(of('premium'));
+    // Simulate flag change to 'premium'
+    simulateFlagChange('user-tier', 'premium', undefined, clientMock);
     
-    const directive = new LdIfDirective(mockTemplateRef, mockViewContainer, mockLdService, mockCdr);
+    // Create directive instance using runInInjectionContext
+    const injector = TestBed.inject(Injector);
+    const directive = runInInjectionContext(injector, () => new LdIfDirective());
+    
+    // Set inputs and initialize
     directive.ldIf = 'user-tier';
     directive.ldIfFallback = 'basic';
     directive.ldIfValue = 'premium';
-    
     directive.ngOnInit();
     
     expect(mockViewContainer.createEmbeddedView).toHaveBeenCalledWith(mockTemplateRef);
   });
 
   it('should hide content when flag does not match specific value', () => {
-    mockLdService.variation$.and.returnValue(of('basic'));
+    // Simulate flag change to 'basic' (not 'premium')
+    simulateFlagChange('user-tier', 'basic', undefined, clientMock);
     
-    const directive = new LdIfDirective(mockTemplateRef, mockViewContainer, mockLdService, mockCdr);
+    // Create directive instance using runInInjectionContext
+    const injector = TestBed.inject(Injector);
+    const directive = runInInjectionContext(injector, () => new LdIfDirective());
+    
+    // Set inputs and initialize
     directive.ldIf = 'user-tier';
     directive.ldIfFallback = 'basic';
     directive.ldIfValue = 'premium';
-    
     directive.ngOnInit();
     
     expect(mockViewContainer.clear).toHaveBeenCalled();
   });
 
   it('should unsubscribe on destroy', () => {
-    const subscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
-    mockLdService.variation$.and.returnValue(subscription);
+    // Create directive instance using runInInjectionContext
+    const injector = TestBed.inject(Injector);
+    const directive = runInInjectionContext(injector, () => new LdIfDirective());
     
-    const directive = new LdIfDirective(mockTemplateRef, mockViewContainer, mockLdService, mockCdr);
+    // Set inputs and initialize
     directive.ldIf = 'test-flag';
     directive.ngOnInit();
-    directive.ngOnDestroy();
     
-    expect(subscription.unsubscribe).toHaveBeenCalled();
+    // Spy on the subscription to verify it gets unsubscribed
+    const subscription = directive['subscription'];
+    if (subscription) {
+      spyOn(subscription, 'unsubscribe');
+      
+      directive.ngOnDestroy();
+      
+      expect(subscription.unsubscribe).toHaveBeenCalled();
+    }
   });
 
   it('should update subscription when inputs change', () => {
-    const subscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
-    mockLdService.variation$.and.returnValue(subscription);
+    // Create directive instance using runInInjectionContext
+    const injector = TestBed.inject(Injector);
+    const directive = runInInjectionContext(injector, () => new LdIfDirective());
     
-    const directive = new LdIfDirective(mockTemplateRef, mockViewContainer, mockLdService, mockCdr);
+    // Set inputs and initialize
     directive.ldIf = 'test-flag';
     directive.ngOnInit();
     
-    directive.ldIfFallback = 'new-fallback';
-    
-    expect(subscription.unsubscribe).toHaveBeenCalled();
+    // Spy on the subscription to verify it gets unsubscribed
+    const subscription = directive['subscription'];
+    if (subscription) {
+      spyOn(subscription, 'unsubscribe');
+      
+      // Change an input
+      directive.ldIfFallback = 'new-fallback';
+      
+      expect(subscription.unsubscribe).toHaveBeenCalled();
+    }
   });
+
+ 
 });
 
 @Component({

@@ -1,38 +1,20 @@
-import { TestBed, inject } from '@angular/core/testing';
-import { NgZone, ElementRef } from '@angular/core';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { LaunchDarklyService } from '../../lib/services/launchdarkly.service';
-import { LD_SERVICE_CONFIG, LDServiceConfig } from '../../lib/interfaces/launchdarkly.interface';
+import { setupLaunchDarklyServiceWithMockedClient } from '../mocks/launchdarkly.mock';
 
 describe('LaunchDarklyService', () => {
   let service: LaunchDarklyService;
-  let mockConfig: LDServiceConfig;
-  let mockZone: jasmine.SpyObj<NgZone>;
 
   beforeEach(() => {
-    mockConfig = {
-      clientId: 'test-client-id',
-      context: { key: 'test-user' },
-      options: { streaming: true },
-      timeout: 500
-    };
-
-    mockZone = jasmine.createSpyObj('NgZone', ['run'], {
-      run: (fn: Function) => fn()
-    });
-
-    // Mock the LaunchDarkly SDK - we'll use a different approach
-    // Since we can't easily mock ES modules in Jasmine, we'll test the service behavior
-    // without mocking the actual SDK initialization
-
+    // Set up service with mocked client
+    const setup = setupLaunchDarklyServiceWithMockedClient();
+    
+    // Configure TestBed with the setup providers
     TestBed.configureTestingModule({
-      providers: [
-        LaunchDarklyService,
-        { provide: LD_SERVICE_CONFIG, useValue: mockConfig },
-        { provide: NgZone, useValue: mockZone }
-      ]
+      providers: setup.providers
     });
 
+    // Get the real service with mocked client
     service = TestBed.inject(LaunchDarklyService);
   });
 
@@ -67,7 +49,7 @@ describe('LaunchDarklyService', () => {
 
   describe('client$', () => {
     it('should emit client instance', (done) => {
-      service.client$.subscribe((client: any) => {
+      service.client$.subscribe(client => {
         expect(client).toBeDefined();
         done();
       });
@@ -85,7 +67,7 @@ describe('LaunchDarklyService', () => {
 
   describe('variation$', () => {
     it('should return observable with fallback value', (done) => {
-      service.variation$('test-flag', 'fallback').subscribe((value: any) => {
+      service.variation$('test-flag', 'fallback').subscribe(value => {
         expect(value).toBeDefined();
         done();
       });
@@ -94,7 +76,7 @@ describe('LaunchDarklyService', () => {
 
   describe('variationDetail$', () => {
     it('should return observable with detail object', (done) => {
-      service.variationDetail$('test-flag', 'fallback').subscribe((detail: any) => {
+      service.variationDetail$('test-flag', 'fallback').subscribe(detail => {
         expect(detail).toBeDefined();
         expect(detail.value).toBeDefined();
         expect(detail.reason).toBeDefined();
@@ -110,7 +92,7 @@ describe('LaunchDarklyService', () => {
       try {
         await service.setContext(newContext, 1000);
         expect(true).toBe(true); // Just verify it doesn't error
-      } catch (err: any) {
+      } catch (err: unknown) {
         // It's okay if this errors in test environment
         expect(err).toBeDefined();
       }
@@ -136,4 +118,4 @@ describe('LaunchDarklyService', () => {
       await expectAsync(service.flush()).toBeResolved();
     });
   });
-});
+}); 

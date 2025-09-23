@@ -44,7 +44,7 @@
     "ng": "ng",
     "build": "ng build launchdarkly-angular",
     "build:prod": "ng build launchdarkly-angular --configuration=production",
-    "test": "ng test launchdarkly-angular",
+    "test": "ng test launchdarkly-angular --no-watch --browsers=ChromeHeadless",
     "test:watch": "ng test launchdarkly-angular --watch",
     "lint": "ng lint",
     "demo:serve": "ng serve demo",
@@ -92,6 +92,8 @@
     "@types/jasmine": "^5.1.9",
     "@types/jasminewd2": "^2.0.13",
     "@types/node": "^24.5.2",
+    "angular-eslint": "20.3.0",
+    "eslint": "^9.35.0",
     "jasmine-core": "^5.10.0",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
@@ -101,6 +103,7 @@
     "ng-packagr": "^16.2.0",
     "rxjs": "~7.8.0",
     "typescript": "~5.1.6",
+    "typescript-eslint": "8.40.0",
     "zone.js": "~0.13.0"
   },
   "sideEffects": false

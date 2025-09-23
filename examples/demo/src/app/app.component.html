@@ -191,16 +191,12 @@
               <div >[ldClassIf]="&#123; flag: 'flag', value: 'value', class: 'class-name' &#125;"</div>
               <div >[ldClassIf]="&#123; flag: 'flag', class: ['class1', 'class2'] &#125;"</div>
               <div >[ldClassIf]="&#123; flag: 'flag', value: 'value', class: 'class1', elseClass: 'class2' &#125;"</div>
-              <div>Tuple form:</div>
-              <div >[ldClassIf]="['flag', 'class-name']"</div>
               <div style="margin-top:8px;"><strong>Conditional Inline Styles (ldStyle):</strong></div>
               <div>Object form:</div>
               <div >[ldStyleIf]="&#123; flag: 'flag', style: &#123; background: 'red', color: 'white' &#125; &#125;"</div>
               <div >[ldStyleIf]="&#123; flag: 'flag', value: 'value', style: &#123; background: 'blue', color: 'white' &#125; &#125;"</div>
               <div >[ldStyleIf]="&#123; flag: 'flag', style: &#123; background: 'green' &#125;, elseStyle: &#123; background: 'gray' &#125; &#125;"</div>
               <div >[ldStyleIf]="&#123; flag: 'flag', value: 'value', style: &#123; background: 'gold' &#125;, elseStyle: &#123; background: 'silver' &#125; &#125;"</div>
-              <div>Tuple form:</div>
-              <div >[ldStyleIf]="['flag', &#123; background: 'red', color: 'white' &#125;]"</div>
               <div style="margin-top:8px;"><strong>Event Tracking:</strong></div>
               <div >[ldTrack]="'button-clicked'" [ldTrackData]="dataObject"</div>
               <div >[ldTrack]="'conversion'" [ldTrackValue]="29.99" [ldTrackData]="dataObject"</div>

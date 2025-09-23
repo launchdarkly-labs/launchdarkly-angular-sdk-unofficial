@@ -1,5 +1,6 @@
-import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy } from '@angular/core';
+import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy, inject } from '@angular/core';
 import { LdSwitchDirective } from './ld-switch.directive';
+import type { LDFlagValue } from 'launchdarkly-js-client-sdk';
 
 /**
  * Directive for individual cases in ldSwitch.
@@ -9,7 +10,7 @@ import { LdSwitchDirective } from './ld-switch.directive';
  * ## Parameters
  * 
  * ### ldSwitchCase (required)
- * - **Type**: `any`
+ * - **Type**: `LDFlagValue`
  * - **Description**: The value to match against the LaunchDarkly flag value
  * - **Example**: `'premium'`, `'dark'`, `5`, `true`, `{enabled: true}`
  * 
@@ -189,15 +190,13 @@ import { LdSwitchDirective } from './ld-switch.directive';
 })
 export class LdSwitchCaseDirective implements OnInit, OnDestroy {
   /** The value to match against the LaunchDarkly flag value */
-  @Input() ldSwitchCase!: any;
+  @Input() ldSwitchCase!: LDFlagValue;
   
-  private view?: any;
+  private view?: unknown;
 
-  constructor(
-    private templateRef: TemplateRef<any>,
-    private viewContainer: ViewContainerRef,
-    private ldSwitch: LdSwitchDirective
-  ) {}
+  private templateRef = inject(TemplateRef<unknown>);
+  private viewContainer = inject(ViewContainerRef);
+  private ldSwitch = inject(LdSwitchDirective);
 
   /**
    * Registers this case with the parent LdSwitchDirective

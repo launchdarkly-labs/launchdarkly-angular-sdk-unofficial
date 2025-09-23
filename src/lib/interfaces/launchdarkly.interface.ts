@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core';
-import type { LDContext, LDOptions } from 'launchdarkly-js-client-sdk';
+import type { LDContext, LDOptions, LDFlagValue } from 'launchdarkly-js-client-sdk';
 
 /**
  * Configuration interface for the LaunchDarkly service
@@ -22,9 +22,9 @@ export interface FlagChangeEvent {
   /** The flag key that changed */
   key: string;
   /** The current flag value */
-  current: any;
+  current: LDFlagValue;
   /** The previous flag value */
-  previous: any;
+  previous: LDFlagValue;
 }
 
 /**
@@ -34,9 +34,9 @@ export interface LDDirectiveConfig {
   /** The feature flag key to evaluate */
   flagKey: string;
   /** The fallback value to use if flag is not available */
-  fallback?: any;
+  fallback?: LDFlagValue;
   /** The specific value to check for (optional) */
-  value?: any;
+  value?: LDFlagValue;
 }
 
 /**

@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NgZone, Component } from '@angular/core';
-import { BehaviorSubject, of } from 'rxjs';
+import { Component } from '@angular/core';
 import { LaunchDarklyAngularModule } from '../../lib/launchdarkly-angular.module';
 import { LaunchDarklyService } from '../../lib/services/launchdarkly.service';
-import { LD_SERVICE_CONFIG } from '../../lib/interfaces/launchdarkly.interface';
+import { setupLaunchDarklyServiceWithMockedClient } from '../mocks/launchdarkly.mock';
 
 describe('LaunchDarklyAngularModule Integration', () => {
   let fixture: ComponentFixture<TestComponent>;
@@ -11,7 +10,9 @@ describe('LaunchDarklyAngularModule Integration', () => {
   let ldService: LaunchDarklyService;
 
   beforeEach(async () => {
-    // Test without mocking the SDK - focus on module integration
+    // Set up service with mocked client
+    const setup = setupLaunchDarklyServiceWithMockedClient();
+
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [
@@ -20,7 +21,8 @@ describe('LaunchDarklyAngularModule Integration', () => {
           context: { key: 'test-user' },
           options: { streaming: true }
         })
-      ]
+      ],
+      providers: setup.providers
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestComponent);
@@ -43,14 +45,14 @@ describe('LaunchDarklyAngularModule Integration', () => {
   });
 
   it('should handle flag variations', (done) => {
-    ldService.variation$('test-flag', 'fallback').subscribe((value: any) => {
+    ldService.variation$('test-flag', 'fallback').subscribe(value => {
       expect(value).toBeDefined();
       done();
     });
   });
 
   it('should handle flag detail variations', (done) => {
-    ldService.variationDetail$('test-flag', 'fallback').subscribe((detail: any) => {
+    ldService.variationDetail$('test-flag', 'fallback').subscribe(detail => {
       expect(detail).toBeDefined();
       expect(detail.value).toBeDefined();
       expect(detail.reason).toBeDefined();
@@ -69,7 +71,7 @@ describe('LaunchDarklyAngularModule Integration', () => {
     try {
       await ldService.setContext(newContext, 1000);
       expect(true).toBe(true); // Just verify it doesn't error
-    } catch (err: any) {
+    } catch (err: unknown) {
       // It's okay if this errors in test environment
       expect(err).toBeDefined();
     }
@@ -82,19 +84,15 @@ describe('LaunchDarklyAngularModule Integration', () => {
 
 describe('LaunchDarklyAngularModule forChild', () => {
   beforeEach(async () => {
+    // Set up service with mocked client
+    const setup = setupLaunchDarklyServiceWithMockedClient();
+
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [
         LaunchDarklyAngularModule.forChild()
       ],
-      providers: [
-        { provide: LD_SERVICE_CONFIG, useValue: {
-          clientId: 'test-client-id',
-          context: { key: 'test-user' },
-          options: { streaming: true },
-          timeout: 500
-        }}
-      ]
+      providers: setup.providers
     }).compileComponents();
   });
 

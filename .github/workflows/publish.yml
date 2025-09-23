@@ -10,8 +10,54 @@ permissions:
   id-token: write  # Required for npm authentication
 
 jobs:
+  # Pre-publish validation job
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.17.0'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build library
+        run: npm run build:prod
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Verify package.json version matches tag
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${{ steps.version.outputs.VERSION }}"
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Error: package.json version ($PACKAGE_VERSION) does not match tag version ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "✅ Version verification passed: $PACKAGE_VERSION"
+
+  # Publish job that requires approval
   publish:
     runs-on: ubuntu-latest
+    needs: validate
+    environment: 
+      name: npm-publish
+      url: https://www.npmjs.com/package/launchdarkly-angular
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,18 +72,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-      - name: Lint code
-        run: npm run lint
-
       - name: Build library
         run: npm run build:prod
-
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Publish to NPM
         run: npm publish
