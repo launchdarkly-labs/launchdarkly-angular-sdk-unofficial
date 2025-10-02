@@ -19,7 +19,13 @@ import { environment } from '../environments/environment';
       useValue: {
         clientId: environment.launchDarklyClientId,
         context: { key: 'demo-user', name: 'Demo User' },
-        options: { streaming: true }
+        options: { streaming: true
+          hooks: {
+            afterEvaluation(...) {
+              
+            }
+          }
+         }
       }
     },
     /* only needed because angular  DI gets messed up with local file imports 
@@ -31,7 +37,7 @@ import { environment } from '../environments/environment';
     // wait for at most 500ms for LaunchDarkly to be ready
     {
       provide: APP_INITIALIZER,
-      useFactory: LaunchDarklyService.createAppInitializer(500),
+      useFactory: LaunchDarklyService.createAppInitializer(200),
       deps: [LaunchDarklyService],
       multi: true
     }
