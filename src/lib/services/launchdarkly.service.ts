@@ -202,7 +202,12 @@ export class LaunchDarklyService {
    */
   protected _initialize(clientId: string, context: LDContext, options?: LDOptions): void {
     // copy so we don't mutate the original options
-    const clientOptions: LDOptions = { streaming: true, ...(options ?? {}) } as LDOptions;
+    const clientOptions: LDOptions = { 
+      streaming: true,
+      // prevent allFlags from generating superfluous events for unused flags
+      sendEventsOnlyForVariation: true,
+      ...(options ?? {}) 
+    } as LDOptions;
     if (this.clientSubject$.value) {
       console.error('[LaunchDarkly Service] initialize called after LD already initialized, skipping. please ensure this is only called once.');
       return;
